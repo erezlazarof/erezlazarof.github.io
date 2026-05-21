@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Erez Lazarof — Digital Business Card</title>
-  <meta name="description" content="כרטיס ביקור דיגיטלי של ארז לזרוף" />
+  <title>Erez Lazarof — ארז לזרוף</title>
+  <meta name="description" content="Erez Lazarof — Project Manager at the Gutwirth School of Medicine, Weizmann Institute of Science" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -16,18 +16,19 @@
       --bg-2: #1e293b;
       --accent: #6366f1;
       --accent-2: #8b5cf6;
+      --accent-3: #14b8a6;
       --text: #f8fafc;
       --text-muted: #94a3b8;
+      --text-faint: #64748b;
       --card-bg: rgba(255, 255, 255, 0.06);
       --card-border: rgba(255, 255, 255, 0.12);
     }
 
     html, body {
-      height: 100%;
-      font-family: 'Heebo', system-ui, -apple-system, sans-serif;
+      min-height: 100%;
+      font-family: 'Heebo', 'Inter', system-ui, -apple-system, sans-serif;
       color: var(--text);
       background: var(--bg-1);
-      overflow-x: hidden;
     }
 
     body {
@@ -37,21 +38,22 @@
       justify-content: center;
       padding: 2rem 1rem;
       background:
-        radial-gradient(circle at 20% 0%, rgba(99, 102, 241, 0.25) 0%, transparent 50%),
-        radial-gradient(circle at 80% 100%, rgba(139, 92, 246, 0.25) 0%, transparent 50%),
+        radial-gradient(circle at 20% 0%, rgba(99, 102, 241, 0.28) 0%, transparent 50%),
+        radial-gradient(circle at 80% 100%, rgba(139, 92, 246, 0.28) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(20, 184, 166, 0.12) 0%, transparent 60%),
         linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 100%);
       background-attachment: fixed;
       position: relative;
+      overflow-x: hidden;
     }
 
-    /* Subtle animated background dots */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
       background-image:
         radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
-      background-size: 30px 30px;
+      background-size: 32px 32px;
       pointer-events: none;
       z-index: 0;
     }
@@ -59,7 +61,7 @@
     .card {
       position: relative;
       z-index: 1;
-      max-width: 480px;
+      max-width: 520px;
       width: 100%;
       background: var(--card-bg);
       backdrop-filter: blur(20px);
@@ -81,17 +83,19 @@
     .avatar {
       width: 120px;
       height: 120px;
-      margin: 0 auto 1.5rem;
+      margin: 0 auto 1.75rem;
       border-radius: 50%;
       background: linear-gradient(135deg, var(--accent), var(--accent-2));
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 3rem;
+      font-size: 2.75rem;
       font-weight: 700;
       color: white;
+      letter-spacing: -0.05em;
       box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
       position: relative;
+      font-family: 'Inter', sans-serif;
     }
 
     .avatar::after {
@@ -102,32 +106,70 @@
       background: linear-gradient(135deg, var(--accent), var(--accent-2));
       z-index: -1;
       opacity: 0.3;
-      filter: blur(10px);
+      filter: blur(12px);
     }
 
     h1 {
       font-size: 2rem;
       font-weight: 700;
       text-align: center;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.25rem;
       letter-spacing: -0.02em;
+    }
+
+    .name-en {
+      font-family: 'Inter', sans-serif;
+      direction: ltr;
+      font-size: 1rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      margin-bottom: 1.25rem;
     }
 
     .title {
       text-align: center;
-      color: var(--text-muted);
+      color: var(--text);
       font-size: 1.05rem;
-      font-weight: 400;
-      margin-bottom: 0.5rem;
+      font-weight: 500;
+      margin-bottom: 0.35rem;
     }
 
-    .tagline {
+    .affiliation {
       text-align: center;
       color: var(--text-muted);
       font-size: 0.9rem;
+      font-weight: 400;
+      margin-bottom: 0.35rem;
+      line-height: 1.5;
+    }
+
+    .affiliation-en {
+      direction: ltr;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.78rem;
+      color: var(--text-faint);
+      text-align: center;
       margin-bottom: 2rem;
-      font-style: italic;
-      opacity: 0.8;
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      font-weight: 400;
     }
 
     .links {
@@ -161,8 +203,8 @@
     }
 
     .link-icon {
-      width: 36px;
-      height: 36px;
+      width: 38px;
+      height: 38px;
       border-radius: 10px;
       background: linear-gradient(135deg, var(--accent), var(--accent-2));
       display: flex;
@@ -185,13 +227,15 @@
       display: flex;
       flex-direction: column;
       min-width: 0;
+      flex: 1;
     }
 
     .link-label {
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.07em;
+      font-family: 'Inter', sans-serif;
     }
 
     .link-value {
@@ -200,29 +244,40 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      font-family: 'Inter', sans-serif;
     }
 
     footer {
       margin-top: 2rem;
       text-align: center;
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      opacity: 0.6;
+      font-size: 0.72rem;
+      color: var(--text-faint);
+      font-family: 'Inter', sans-serif;
+      direction: ltr;
     }
 
     @media (max-width: 480px) {
       .card { padding: 2.5rem 1.75rem; }
       h1 { font-size: 1.65rem; }
-      .avatar { width: 100px; height: 100px; font-size: 2.5rem; }
+      .avatar { width: 100px; height: 100px; font-size: 2.25rem; }
     }
   </style>
 </head>
 <body>
   <main class="card">
     <div class="avatar">EL</div>
-    <h1>Erez Lazarof</h1>
-    <p class="title">Product &amp; Operations</p>
-    <p class="tagline">Building things, one repo at a time.</p>
+    <h1>ארז לזרוף</h1>
+    <p class="name-en">Erez Lazarof</p>
+
+    <p class="title">מנהל פרויקטים · Project Manager</p>
+    <p class="affiliation">בית הספר לרפואה ע"ש מרים ואהרון גוטווירט · תוכנית MD-PhD</p>
+    <p class="affiliation-en">Gutwirth School of Medicine · MD-PhD Program · Weizmann Institute of Science</p>
+
+    <div class="badges">
+      <span class="badge">M.Sc. Engineering &amp; Management</span>
+      <span class="badge">Founder, VITURA</span>
+      <span class="badge">Reserve Officer</span>
+    </div>
 
     <nav class="links">
       <a class="link" href="mailto:erezlazarof@gmail.com">
@@ -235,13 +290,13 @@
         </span>
       </a>
 
-      <a class="link" href="tel:+972500000000">
+      <a class="link" href="tel:+972535301387">
         <span class="link-icon">
           <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
         </span>
         <span class="link-content">
           <span class="link-label">Phone</span>
-          <span class="link-value">+972-50-000-0000</span>
+          <span class="link-value">+972-53-530-1387</span>
         </span>
       </a>
 
@@ -267,7 +322,7 @@
     </nav>
 
     <footer>
-      &copy; <span id="year"></span> Erez Lazarof
+      &copy; <span id="year"></span> Erez Lazarof · Rehovot, Israel
     </footer>
   </main>
 
