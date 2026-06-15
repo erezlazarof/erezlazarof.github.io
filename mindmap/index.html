@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>מפת מסע — בית הספר לרפואה ע"ש גוטווירט</title>
+  <meta name="description" content="כלי מיינד מאפ אינטראקטיבי למיפוי מסע המועמד והסטודנט בבית הספר לרפואה, מכון ויצמן" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-1: #0f172a;
+      --bg-2: #1e293b;
+      --accent: #6366f1;
+      --accent-2: #8b5cf6;
+      --accent-3: #14b8a6;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-faint: #64748b;
+      --panel-bg: rgba(15, 23, 42, 0.85);
+      --panel-border: rgba(255, 255, 255, 0.12);
+      --edge: rgba(148, 163, 184, 0.5);
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Heebo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      color: var(--text);
+      background: var(--bg-1);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background:
+        radial-gradient(circle at 15% 0%, rgba(99, 102, 241, 0.18) 0%, transparent 45%),
+        radial-gradient(circle at 85% 100%, rgba(139, 92, 246, 0.18) 0%, transparent 45%),
+        linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 100%);
+    }
+
+    /* ===== Top toolbar ===== */
+    .toolbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      padding: 0.6rem 1rem;
+      background: var(--panel-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--panel-border);
+    }
+    .brand {
+      display: flex; align-items: center; gap: 0.6rem;
+      font-weight: 700; font-size: 1rem; white-space: nowrap;
+      margin-inline-end: 0.5rem;
+    }
+    .brand .logo {
+      width: 30px; height: 30px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+    }
+    .brand small { color: var(--text-muted); font-weight: 400; font-size: 0.72rem; }
+
+    select.map-select {
+      font-family: inherit; font-size: 0.85rem; font-weight: 500;
+      color: var(--text); background: rgba(255,255,255,0.06);
+      border: 1px solid var(--panel-border); border-radius: 9px;
+      padding: 0.45rem 0.7rem; cursor: pointer; max-width: 230px;
+    }
+    select.map-select option { background: var(--bg-2); color: var(--text); }
+
+    .tb-spacer { flex: 1; }
+    .tb-group { display: flex; align-items: center; gap: 0.3rem; }
+
+    button.tb {
+      font-family: inherit; font-size: 0.8rem; font-weight: 500;
+      color: var(--text); background: rgba(255,255,255,0.06);
+      border: 1px solid var(--panel-border); border-radius: 9px;
+      padding: 0.45rem 0.65rem; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      transition: all 0.15s ease; white-space: nowrap;
+    }
+    button.tb:hover { background: rgba(255,255,255,0.13); border-color: var(--accent); }
+    button.tb:active { transform: translateY(1px); }
+    button.tb svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    button.tb.icon { padding: 0.45rem; }
+    button.tb.primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); border-color: transparent; }
+    button.tb.primary:hover { filter: brightness(1.1); }
+
+    /* ===== Canvas viewport ===== */
+    .viewport {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      overflow: hidden;
+      cursor: grab;
+      touch-action: none;
+    }
+    .viewport.panning { cursor: grabbing; }
+
+    .canvas {
+      position: absolute;
+      top: 0; left: 0;
+      transform-origin: 0 0;
+      will-change: transform;
+    }
+    #edges {
+      position: absolute; top: 0; left: 0;
+      overflow: visible; pointer-events: none;
+    }
+
+    /* ===== Nodes ===== */
+    .node {
+      position: absolute;
+      box-sizing: border-box;
+      max-width: 260px;
+      min-width: 90px;
+      padding: 0.6rem 0.85rem;
+      border-radius: 13px;
+      background: var(--bg-2);
+      border: 1.5px solid var(--node-color, var(--accent));
+      box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+      font-size: 0.9rem;
+      font-weight: 500;
+      line-height: 1.35;
+      color: var(--text);
+      cursor: pointer;
+      user-select: none;
+      transition: box-shadow 0.15s ease, transform 0.05s ease, border-color 0.15s;
+      direction: rtl;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .node:hover { box-shadow: 0 8px 26px rgba(0,0,0,0.5); }
+    .node.root {
+      font-size: 1.05rem; font-weight: 700;
+      padding: 0.85rem 1.15rem;
+      background: linear-gradient(135deg, rgba(99,102,241,0.28), rgba(139,92,246,0.28));
+      max-width: 300px;
+    }
+    .node.selected {
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.55), 0 10px 30px rgba(0,0,0,0.5);
+      transform: translateZ(0);
+    }
+    .node .node-stripe {
+      position: absolute; top: 8px; bottom: 8px; inset-inline-end: -1.5px;
+      width: 4px; border-radius: 4px;
+      background: var(--node-color, var(--accent));
+    }
+    .node .note-dot {
+      position: absolute; top: -6px; inset-inline-start: -6px;
+      width: 15px; height: 15px; border-radius: 50%;
+      background: var(--accent-3);
+      border: 2px solid var(--bg-1);
+      display: none;
+      font-size: 9px; line-height: 11px; text-align: center; color: #042f2e;
+    }
+    .node.has-note .note-dot { display: block; }
+
+    .node textarea.inline-edit {
+      font-family: inherit; font-size: inherit; font-weight: inherit;
+      color: var(--text); background: rgba(0,0,0,0.25);
+      border: none; outline: none; resize: none;
+      width: 100%; min-width: 160px; line-height: 1.35;
+      direction: rtl; overflow: hidden;
+    }
+
+    /* collapse toggle */
+    .toggle {
+      position: absolute;
+      inset-inline-start: -11px;
+      top: 50%; transform: translateY(-50%);
+      width: 20px; height: 20px; border-radius: 50%;
+      background: var(--node-color, var(--accent));
+      color: #fff; border: 2px solid var(--bg-1);
+      font-size: 13px; font-weight: 700; line-height: 16px; text-align: center;
+      cursor: pointer; z-index: 2;
+      display: none;
+    }
+    .node.has-children .toggle { display: block; }
+    .node.collapsed .toggle { background: var(--bg-2); }
+
+    /* hover action buttons */
+    .node-actions {
+      position: absolute;
+      top: -14px; inset-inline-end: 8px;
+      display: none; gap: 3px;
+      background: var(--bg-1);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px; padding: 2px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      z-index: 3;
+    }
+    .node.selected .node-actions { display: flex; }
+    .node-actions button {
+      width: 22px; height: 22px; border: none; border-radius: 6px;
+      background: transparent; color: var(--text-muted); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .node-actions button:hover { background: rgba(255,255,255,0.12); color: var(--text); }
+    .node-actions button.del:hover { background: rgba(239,68,68,0.2); color: #fca5a5; }
+    .node-actions svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* ===== Side panel ===== */
+    .side-panel {
+      position: fixed;
+      top: 0; left: 0; right: auto; bottom: 0;
+      width: 320px; max-width: 86vw;
+      z-index: 25;
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-right: 1px solid var(--panel-border);
+      transform: translateX(-105%);
+      transition: transform 0.25s ease;
+      display: flex; flex-direction: column;
+      padding: 4.5rem 1.1rem 1.1rem;
+      overflow-y: auto;
+    }
+    .side-panel.open { transform: translateX(0); }
+    .side-panel h3 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 0.5rem; }
+    .side-panel label { display: block; font-size: 0.78rem; color: var(--text-muted); margin: 0.9rem 0 0.35rem; }
+    .side-panel textarea, .side-panel input[type=text] {
+      width: 100%; font-family: inherit; font-size: 0.9rem;
+      color: var(--text); background: rgba(255,255,255,0.06);
+      border: 1px solid var(--panel-border); border-radius: 10px;
+      padding: 0.6rem 0.7rem; resize: vertical; direction: rtl;
+    }
+    .side-panel textarea { min-height: 90px; }
+    .swatches { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.3rem; }
+    .swatch { width: 26px; height: 26px; border-radius: 7px; cursor: pointer; border: 2px solid transparent; }
+    .swatch.active { border-color: var(--text); }
+    .panel-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 1.2rem; }
+    .panel-close {
+      position: absolute; top: 1rem; inset-inline-end: 1rem;
+      background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.4rem; line-height: 1;
+    }
+
+    /* ===== Zoom controls ===== */
+    .zoom-controls {
+      position: fixed; bottom: 1.1rem; inset-inline-end: 1.1rem; z-index: 20;
+      display: flex; flex-direction: column; gap: 0.4rem;
+    }
+    .zoom-controls button {
+      width: 40px; height: 40px; border-radius: 11px;
+      background: var(--panel-bg); border: 1px solid var(--panel-border);
+      color: var(--text); cursor: pointer; font-size: 1.2rem;
+      backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center;
+    }
+    .zoom-controls button:hover { background: rgba(255,255,255,0.13); }
+    .zoom-controls svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .hint {
+      position: fixed; bottom: 1.1rem; inset-inline-start: 1.1rem; z-index: 15;
+      font-size: 0.74rem; color: var(--text-faint);
+      background: var(--panel-bg); border: 1px solid var(--panel-border);
+      border-radius: 9px; padding: 0.5rem 0.75rem; max-width: 60vw;
+      backdrop-filter: blur(10px);
+    }
+    .hint b { color: var(--text-muted); }
+
+    /* ===== Modal (help / new map) ===== */
+    .overlay {
+      position: fixed; inset: 0; z-index: 50;
+      background: rgba(2, 6, 23, 0.7);
+      backdrop-filter: blur(4px);
+      display: none; align-items: center; justify-content: center; padding: 1rem;
+    }
+    .overlay.open { display: flex; }
+    .modal {
+      background: var(--bg-2); border: 1px solid var(--panel-border);
+      border-radius: 18px; padding: 1.8rem; max-width: 440px; width: 100%;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+    }
+    .modal h2 { font-size: 1.2rem; margin-bottom: 1rem; }
+    .modal p, .modal li { font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; }
+    .modal ul { margin: 0.5rem 1.2rem; }
+    .modal kbd {
+      font-family: monospace; background: rgba(255,255,255,0.1);
+      border: 1px solid var(--panel-border); border-radius: 5px;
+      padding: 0.05rem 0.4rem; font-size: 0.8rem; color: var(--text);
+    }
+    .modal .modal-actions { display: flex; gap: 0.5rem; justify-content: flex-start; margin-top: 1.4rem; }
+    .modal input[type=text] {
+      width: 100%; font-family: inherit; font-size: 0.95rem; color: var(--text);
+      background: rgba(255,255,255,0.06); border: 1px solid var(--panel-border);
+      border-radius: 10px; padding: 0.7rem; margin-top: 0.5rem; direction: rtl;
+    }
+
+    .toast {
+      position: fixed; top: 4.5rem; left: 50%; transform: translateX(-50%) translateY(-20px);
+      z-index: 60; background: var(--bg-2); border: 1px solid var(--accent);
+      color: var(--text); padding: 0.6rem 1.1rem; border-radius: 11px;
+      font-size: 0.85rem; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      opacity: 0; pointer-events: none; transition: all 0.25s ease;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 640px) {
+      .brand small, .tb-label { display: none; }
+      .hint { display: none; }
+      .toolbar { gap: 0.35rem; padding: 0.5rem; }
+    }
+
+    @media print {
+      .toolbar, .zoom-controls, .side-panel, .hint, .node-actions, .toggle, .panel-close { display: none !important; }
+      body { background: #fff; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Toolbar -->
+  <header class="toolbar">
+    <div class="brand">
+      <span class="logo">🧠</span>
+      <span>מפת מסע<br><small>בי״ס לרפואה ע״ש גוטווירט · ויצמן</small></span>
+    </div>
+
+    <select class="map-select" id="mapSelect" title="בחירת מפה"></select>
+    <button class="tb icon" id="newMapBtn" title="מפה חדשה">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+    <button class="tb icon" id="renameMapBtn" title="שינוי שם מפה">
+      <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    </button>
+    <button class="tb icon del" id="deleteMapBtn" title="מחיקת מפה">
+      <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+    </button>
+
+    <div class="tb-spacer"></div>
+
+    <div class="tb-group">
+      <button class="tb" id="expandAllBtn" title="פתח הכל"><svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3m13-5v3a2 2 0 0 1-2 2h-3"/></svg><span class="tb-label">פתח הכל</span></button>
+      <button class="tb" id="collapseAllBtn" title="קפל הכל"><svg viewBox="0 0 24 24"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/></svg><span class="tb-label">קפל</span></button>
+    </div>
+
+    <div class="tb-group">
+      <button class="tb" id="exportJsonBtn" title="ייצוא JSON"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg><span class="tb-label">JSON</span></button>
+      <button class="tb" id="importJsonBtn" title="ייבוא JSON"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg></button>
+      <button class="tb" id="exportPngBtn" title="ייצוא תמונה PNG"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><span class="tb-label">PNG</span></button>
+    </div>
+
+    <button class="tb icon" id="helpBtn" title="עזרה">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    </button>
+    <input type="file" id="fileInput" accept="application/json" style="display:none" />
+  </header>
+
+  <!-- Canvas -->
+  <div class="viewport" id="viewport">
+    <div class="canvas" id="canvas">
+      <svg id="edges"></svg>
+    </div>
+  </div>
+
+  <!-- Side panel -->
+  <aside class="side-panel" id="sidePanel">
+    <button class="panel-close" id="panelClose">&times;</button>
+    <h3>עריכת צומת</h3>
+    <label for="nodeText">טקסט</label>
+    <input type="text" id="nodeText" />
+    <label for="nodeNote">הערה / פירוט</label>
+    <textarea id="nodeNote" placeholder="מדדים, אחראים, הערות, קישורים..."></textarea>
+    <label>צבע</label>
+    <div class="swatches" id="swatches"></div>
+    <div class="panel-actions">
+      <button class="tb" id="addChildBtn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> צומת-בן</button>
+      <button class="tb" id="addSiblingBtn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> צומת-אח</button>
+      <button class="tb del" id="deleteNodeBtn" style="grid-column: 1 / -1; color:#fca5a5;"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg> מחיקת צומת</button>
+    </div>
+  </aside>
+
+  <!-- Zoom controls -->
+  <div class="zoom-controls">
+    <button id="zoomIn" title="הגדל"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+    <button id="zoomFit" title="התאם למסך"><svg viewBox="0 0 24 24"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+    <button id="zoomOut" title="הקטן"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+  </div>
+
+  <div class="hint">
+    <b>טיפ:</b> לחיצה כפולה = עריכה · <b>Tab</b> צומת-בן · <b>Enter</b> צומת-אח · <b>Delete</b> מחיקה · גלגלת = זום · גרירה = הזזה
+  </div>
+
+  <!-- Help / generic modal -->
+  <div class="overlay" id="overlay">
+    <div class="modal" id="modal"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+  /* =========================================================================
+     מפת מסע — כלי מיינד מאפ אינטראקטיבי
+     קובץ עצמאי לחלוטין: ללא תלות בשרת. שמירה ב-localStorage + ייצוא/ייבוא.
+     ========================================================================= */
+  (function () {
+    "use strict";
+
+    const COLORS = [
+      "#6366f1", "#8b5cf6", "#14b8a6", "#0ea5e9",
+      "#f59e0b", "#ef4444", "#ec4899", "#22c55e", "#64748b"
+    ];
+    const STORAGE_KEY = "gutwirth_journey_maps_v1";
+    const H_GAP = 70;   // מרווח אופקי בין עמודות
+    const V_GAP = 16;   // מרווח אנכי בין צמתים
+
+    // ---------- מודל נתונים ראשוני ----------
+    let uidCounter = 1;
+    function uid() { return "n" + (Date.now().toString(36)) + "_" + (uidCounter++); }
+
+    function node(text, color, children, note) {
+      return { id: uid(), text: text, color: color || null, note: note || "", collapsed: false, children: children || [] };
+    }
+
+    function seedCandidateJourney() {
+      return node("מסע המועמד\nמחשיפה ועד קבלה", "#8b5cf6", [
+        node("1 · חשיפה ומודעות", "#ec4899", [
+          node("פרסום ברשתות חברתיות", null, [
+            node("פייסבוק / אינסטגרם"),
+            node("לינקדאין"),
+            node("טיקטוק / יוטיוב"),
+            node("קמפיינים ממומנים (Ads)"),
+          ]),
+          node("תוכן אורגני", null, [
+            node("פוסטים וסטוריז"),
+            node("סרטוני תדמית ובוגרים"),
+          ]),
+          node("יחסי ציבור וכתבות"),
+          node("אירועי חשיפה", null, [
+            node("ימים פתוחים"),
+            node("ירידי תארים וכנסים"),
+            node("הרצאות והדגמות מחקר"),
+          ]),
+          node("מפה לאוזן והמלצות בוגרים"),
+          node("אתר התוכנית / דף נחיתה"),
+        ]),
+        node("2 · התעניינות", "#0ea5e9", [
+          node("כניסה לאתר ולדף התוכנית"),
+          node("צפייה בוובינר / סרטון"),
+          node("הורדת ברושור / חומרי מידע"),
+          node("השארת פרטים (ליד)"),
+          node("פנייה למשרד הקבלה", null, [
+            node("טלפון"),
+            node("דוא״ל"),
+            node("וואטסאפ / צ׳אט"),
+          ]),
+          node("ייעוץ ומענה לשאלות"),
+        ]),
+        node("3 · רישום והגשת מועמדות", "#14b8a6", [
+          node("פתיחת טופס מקוון"),
+          node("מילוי פרטים אישיים ואקדמיים"),
+          node("העלאת מסמכים", null, [
+            node("גיליונות ציונים ותעודות"),
+            node("קורות חיים"),
+            node("מכתבי המלצה"),
+            node("הצהרת כוונות (SOP)"),
+          ]),
+          node("תשלום דמי רישום"),
+          node("אישור קבלת מועמדות"),
+        ]),
+        node("4 · מיון והערכה", "#f59e0b", [
+          node("בדיקת עמידה בתנאי סף"),
+          node("מבחנים ומבדקים", null, [
+            node("מבחן מתא״ם / GRE / MCAT"),
+            node("מבדקים פסיכומטריים"),
+          ]),
+          node("מרכז הערכה (מא״ה) / יום מיון"),
+          node("ראיונות אישיים", null, [
+            node("ראיון אישי / ועדה"),
+            node("ראיונות מובנים (MMI)"),
+          ]),
+          node("בדיקת המלצות ורקע"),
+          node("דירוג ועדת קבלה"),
+        ]),
+        node("5 · החלטה וקבלה", "#22c55e", [
+          node("החלטת ועדת קבלה"),
+          node("מכתב קבלה / הצעה"),
+          node("רשימת המתנה"),
+          node("אישור המועמד וחתימה"),
+          node("מקדמה / שריון מקום"),
+          node("מעבר לקליטה ואוריינטציה →", "#6366f1"),
+        ]),
+      ]);
+    }
+
+    function seedStudentJourney() {
+      return node("מסע הסטודנט\nמקבלה ועד סיום", "#6366f1", [
+        node("קליטה ואוריינטציה", "#0ea5e9", [
+          node("יום פתיחה והיכרות"),
+          node("רישום לקורסים"),
+          node("ליווי וחונכות (Mentoring)"),
+        ]),
+        node("שלב פרה-קליני", "#14b8a6", [
+          node("מדעי יסוד"),
+          node("אנטומיה ופיזיולוגיה"),
+          node("בחינות ביניים"),
+        ]),
+        node("שלב קליני / סבבים", "#f59e0b", [
+          node("סבבים מחלקתיים"),
+          node("הכשרה מעשית בבתי חולים"),
+        ]),
+        node("מסלול מחקר (MD-PhD)", "#8b5cf6", [
+          node("בחירת מנחה ומעבדה"),
+          node("הצעת מחקר"),
+          node("עבודת דוקטורט ופרסומים"),
+        ]),
+        node("הסמכה וסיום", "#22c55e", [
+          node("בחינות מסכמות"),
+          node("סטאז׳"),
+          node("טקס סיום והענקת תארים"),
+          node("רשת בוגרים (Alumni)"),
+        ]),
+      ]);
+    }
+
+    // ---------- מצב ----------
+    let store = loadStore();
+    let activeId = store.activeId;
+    let scale = 1, panX = 0, panY = 0;
+    let selectedId = null;
+    let editing = false;
+
+    const $ = (id) => document.getElementById(id);
+    const viewport = $("viewport");
+    const canvas = $("canvas");
+    const edgesSvg = $("edges");
+
+    // ---------- אחסון ----------
+    function loadStore() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.maps && parsed.maps.length) return parsed;
+        }
+      } catch (e) { /* ignore */ }
+      // ברירת מחדל: שתי מפות זרע
+      const m1 = { id: uid(), name: "מסע המועמד — מחשיפה לקבלה", root: seedCandidateJourney() };
+      const m2 = { id: uid(), name: "מסע הסטודנט — מקבלה לסיום", root: seedStudentJourney() };
+      return { maps: [m1, m2], activeId: m1.id };
+    }
+
+    function saveStore() {
+      store.activeId = activeId;
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); } catch (e) { toast("שגיאת שמירה"); }
+    }
+
+    function activeMap() {
+      return store.maps.find(m => m.id === activeId) || store.maps[0];
+    }
+
+    // ---------- עזרי עץ ----------
+    function findNode(id, root = activeMap().root, parent = null) {
+      if (root.id === id) return { node: root, parent };
+      for (const c of root.children) {
+        const r = findNode(id, c, root);
+        if (r) return r;
+      }
+      return null;
+    }
+    function walk(n, fn) { fn(n); n.children.forEach(c => walk(c, fn)); }
+
+    // ---------- פריסה (tidy tree אופקי, RTL: שורש מימין) ----------
+    function computeLayout() {
+      const root = activeMap().root;
+
+      // עומק לכל צומת + רוחב מקסימלי לכל עומק (מתוך מדידה אמיתית)
+      const nodesByDepth = [];
+      function assignDepth(n, d) {
+        n._depth = d;
+        (nodesByDepth[d] = nodesByDepth[d] || []).push(n);
+        if (!n.collapsed) n.children.forEach(c => assignDepth(c, d + 1));
+      }
+      assignDepth(root, 0);
+
+      const colW = nodesByDepth.map(arr => Math.max(...arr.map(n => n._w)));
+      const colCenter = [];
+      colCenter[0] = 0;
+      for (let d = 1; d < colW.length; d++) {
+        colCenter[d] = colCenter[d - 1] - (colW[d - 1] / 2 + H_GAP + colW[d] / 2);
+      }
+
+      // מיקום אנכי: עלים נערמים, הורים ממורכזים
+      let cursorY = 0;
+      function place(n) {
+        n._x = colCenter[n._depth];
+        if (n.collapsed || n.children.length === 0) {
+          n._y = cursorY + n._h / 2;
+          cursorY += n._h + V_GAP;
+        } else {
+          n.children.forEach(place);
+          const first = n.children[0], last = n.children[n.children.length - 1];
+          n._y = (first._y + last._y) / 2;
+        }
+      }
+      place(root);
+    }
+
+    // ---------- רינדור ----------
+    let nodeEls = {};
+
+    function render() {
+      // שלב 1: בנייה/מדידה
+      nodeEls = {};
+      // נקה צמתים קודמים (שמור את ה-svg)
+      Array.from(canvas.querySelectorAll(".node")).forEach(el => el.remove());
+
+      const root = activeMap().root;
+      const visible = [];
+      (function collect(n) {
+        visible.push(n);
+        if (!n.collapsed) n.children.forEach(collect);
+      })(root);
+
+      // צור אלמנטים ומדוד
+      for (const n of visible) {
+        const el = buildNodeEl(n, n === root);
+        canvas.appendChild(el);
+        nodeEls[n.id] = el;
+      }
+      for (const n of visible) {
+        const el = nodeEls[n.id];
+        n._w = el.offsetWidth;
+        n._h = el.offsetHeight;
+      }
+
+      computeLayout();
+
+      // bounding box
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const n of visible) {
+        minX = Math.min(minX, n._x - n._w / 2);
+        maxX = Math.max(maxX, n._x + n._w / 2);
+        minY = Math.min(minY, n._y - n._h / 2);
+        maxY = Math.max(maxY, n._y + n._h / 2);
+      }
+      const pad = 80;
+      const offX = -minX + pad, offY = -minY + pad;
+      const totalW = (maxX - minX) + pad * 2;
+      const totalH = (maxY - minY) + pad * 2;
+
+      // מקם צמתים
+      for (const n of visible) {
+        const el = nodeEls[n.id];
+        el.style.left = (n._x + offX - n._w / 2) + "px";
+        el.style.top = (n._y + offY - n._h / 2) + "px";
+      }
+
+      // ציור קשתות
+      drawEdges(visible, offX, offY, totalW, totalH);
+
+      canvas.style.width = totalW + "px";
+      canvas.style.height = totalH + "px";
+      canvas._bbox = { w: totalW, h: totalH };
+
+      applySelectionStyles();
+    }
+
+    function drawEdges(visible, offX, offY, w, h) {
+      edgesSvg.setAttribute("width", w);
+      edgesSvg.setAttribute("height", h);
+      edgesSvg.style.width = w + "px";
+      edgesSvg.style.height = h + "px";
+      let paths = "";
+      for (const n of visible) {
+        if (n.collapsed) continue;
+        for (const c of n.children) {
+          // הורה משמאל-מטה אל ילד מימין (RTL: ילד משמאל לאב)
+          const px = n._x + offX - n._w / 2;       // קצה שמאלי של ההורה
+          const py = n._y + offY;
+          const cx = c._x + offX + c._w / 2;       // קצה ימני של הילד
+          const cy = c._y + offY;
+          const midX = (px + cx) / 2;
+          const color = effectiveColor(c);
+          paths += `<path d="M ${px} ${py} C ${midX} ${py}, ${midX} ${cy}, ${cx} ${cy}" stroke="${color}" stroke-width="2" fill="none" opacity="0.55"/>`;
+        }
+      }
+      // שמור את ה-defs ושים נתיבים
+      edgesSvg.innerHTML = paths;
+    }
+
+    function effectiveColor(n) {
+      // צבע אפקטיבי: של הצומת, אחרת של אב קרוב, אחרת ברירת מחדל
+      let cur = n;
+      while (cur) {
+        if (cur.color) return cur.color;
+        const r = findNode(cur.id);
+        cur = r ? r.parent : null;
+      }
+      return COLORS[0];
+    }
+
+    function buildNodeEl(n, isRoot) {
+      const el = document.createElement("div");
+      el.className = "node" + (isRoot ? " root" : "");
+      if (n.children.length) el.classList.add("has-children");
+      if (n.collapsed) el.classList.add("collapsed");
+      if (n.note && n.note.trim()) el.classList.add("has-note");
+      el.dataset.id = n.id;
+      el.style.setProperty("--node-color", effectiveColor(n));
+
+      const label = document.createElement("span");
+      label.className = "node-label";
+      label.textContent = n.text;
+      el.appendChild(label);
+
+      const stripe = document.createElement("span");
+      stripe.className = "node-stripe";
+      el.appendChild(stripe);
+
+      const noteDot = document.createElement("span");
+      noteDot.className = "note-dot";
+      noteDot.textContent = "i";
+      el.appendChild(noteDot);
+
+      // toggle collapse
+      const toggle = document.createElement("div");
+      toggle.className = "toggle";
+      toggle.textContent = n.collapsed ? ("+" ) : "–";
+      if (n.collapsed && n.children.length) toggle.textContent = "+" + n.children.length;
+      toggle.title = n.collapsed ? "פתח" : "קפל";
+      toggle.addEventListener("click", (e) => { e.stopPropagation(); n.collapsed = !n.collapsed; saveStore(); render(); });
+      el.appendChild(toggle);
+
+      // hover actions
+      const actions = document.createElement("div");
+      actions.className = "node-actions";
+      actions.innerHTML =
+        '<button data-act="child" title="צומת-בן (Tab)"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>' +
+        '<button data-act="edit" title="עריכה"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>' +
+        (isRoot ? "" : '<button class="del" data-act="del" title="מחיקה (Delete)"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>');
+      actions.addEventListener("click", (e) => {
+        const btn = e.target.closest("button"); if (!btn) return;
+        e.stopPropagation();
+        const act = btn.dataset.act;
+        if (act === "child") addChild(n.id);
+        else if (act === "edit") startInlineEdit(n.id);
+        else if (act === "del") deleteNode(n.id);
+      });
+      el.appendChild(actions);
+
+      el.addEventListener("mousedown", (e) => e.stopPropagation());
+      el.addEventListener("click", (e) => { e.stopPropagation(); selectNode(n.id); });
+      el.addEventListener("dblclick", (e) => { e.stopPropagation(); startInlineEdit(n.id); });
+
+      return el;
+    }
+
+    // ---------- בחירה ----------
+    function selectNode(id) {
+      selectedId = id;
+      applySelectionStyles();
+      openPanelFor(id);
+    }
+    function applySelectionStyles() {
+      Object.values(nodeEls).forEach(el => el.classList.remove("selected"));
+      if (selectedId && nodeEls[selectedId]) nodeEls[selectedId].classList.add("selected");
+    }
+
+    // ---------- עריכה inline ----------
+    function startInlineEdit(id) {
+      const el = nodeEls[id]; if (!el) return;
+      const res = findNode(id); if (!res) return;
+      const n = res.node;
+      editing = true;
+      selectNode(id);
+      const label = el.querySelector(".node-label");
+      const ta = document.createElement("textarea");
+      ta.className = "inline-edit";
+      ta.value = n.text;
+      label.replaceWith(ta);
+      ta.focus();
+      ta.select();
+      autoGrow(ta);
+      ta.addEventListener("input", () => autoGrow(ta));
+      const commit = () => {
+        editing = false;
+        n.text = ta.value.trim() || "ללא שם";
+        saveStore();
+        render();
+        selectNode(id);
+        syncPanel();
+      };
+      ta.addEventListener("blur", commit);
+      ta.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ta.blur(); }
+        else if (e.key === "Escape") { e.preventDefault(); editing = false; render(); selectNode(id); }
+        e.stopPropagation();
+      });
+    }
+    function autoGrow(ta) { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px"; }
+
+    // ---------- פעולות עץ ----------
+    function addChild(id) {
+      const res = findNode(id); if (!res) return;
+      res.node.collapsed = false;
+      const child = node("נושא חדש");
+      res.node.children.push(child);
+      saveStore(); render();
+      selectNode(child.id);
+      startInlineEdit(child.id);
+    }
+    function addSibling(id) {
+      const res = findNode(id);
+      if (!res || !res.parent) { addChild(id); return; }
+      const sib = node("נושא חדש");
+      const idx = res.parent.children.indexOf(res.node);
+      res.parent.children.splice(idx + 1, 0, sib);
+      saveStore(); render();
+      selectNode(sib.id);
+      startInlineEdit(sib.id);
+    }
+    function deleteNode(id) {
+      const res = findNode(id);
+      if (!res) return;
+      if (!res.parent) { toast("לא ניתן למחוק את השורש"); return; }
+      const count = countDescendants(res.node);
+      if (count > 0 && !confirm(`למחוק את "${res.node.text}" ו-${count} צמתים תחתיו?`)) return;
+      const idx = res.parent.children.indexOf(res.node);
+      res.parent.children.splice(idx, 1);
+      selectedId = res.parent.id;
+      saveStore(); render();
+      selectNode(res.parent.id);
+    }
+    function countDescendants(n) { let c = 0; n.children.forEach(ch => { c += 1 + countDescendants(ch); }); return c; }
+
+    // ---------- פאנל צד ----------
+    const sidePanel = $("sidePanel");
+    function openPanelFor(id) {
+      sidePanel.classList.add("open");
+      syncPanel();
+    }
+    function syncPanel() {
+      if (!selectedId) return;
+      const res = findNode(selectedId); if (!res) return;
+      const n = res.node;
+      $("nodeText").value = n.text;
+      $("nodeNote").value = n.note || "";
+      buildSwatches(n.color);
+      $("deleteNodeBtn").style.display = res.parent ? "" : "none";
+    }
+    function buildSwatches(active) {
+      const wrap = $("swatches");
+      wrap.innerHTML = "";
+      const opts = [{ c: null, label: "ירושה" }].concat(COLORS.map(c => ({ c })));
+      opts.forEach(o => {
+        const s = document.createElement("div");
+        s.className = "swatch" + (o.c === active ? " active" : "");
+        s.style.background = o.c || "repeating-linear-gradient(45deg,#475569,#475569 4px,#334155 4px,#334155 8px)";
+        s.title = o.c || "צבע יורש מהאב";
+        s.addEventListener("click", () => {
+          const res = findNode(selectedId); if (!res) return;
+          res.node.color = o.c;
+          saveStore(); render(); selectNode(selectedId); buildSwatches(o.c);
+        });
+        wrap.appendChild(s);
+      });
+    }
+    $("nodeText").addEventListener("input", (e) => {
+      const res = findNode(selectedId); if (!res) return;
+      res.node.text = e.target.value;
+      // עדכון חי ללא render מלא
+      const label = nodeEls[selectedId] && nodeEls[selectedId].querySelector(".node-label");
+      if (label) label.textContent = e.target.value;
+    });
+    $("nodeText").addEventListener("change", () => { saveStore(); render(); selectNode(selectedId); });
+    $("nodeNote").addEventListener("input", (e) => {
+      const res = findNode(selectedId); if (!res) return;
+      res.node.note = e.target.value;
+    });
+    $("nodeNote").addEventListener("change", () => { saveStore(); render(); selectNode(selectedId); });
+    $("addChildBtn").addEventListener("click", () => selectedId && addChild(selectedId));
+    $("addSiblingBtn").addEventListener("click", () => selectedId && addSibling(selectedId));
+    $("deleteNodeBtn").addEventListener("click", () => selectedId && deleteNode(selectedId));
+    $("panelClose").addEventListener("click", () => sidePanel.classList.remove("open"));
+
+    // ---------- זום & גרירה ----------
+    function applyTransform() {
+      canvas.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+    }
+    function zoomAt(factor, cx, cy) {
+      const newScale = Math.min(2.5, Math.max(0.15, scale * factor));
+      const rect = viewport.getBoundingClientRect();
+      const ox = cx - rect.left, oy = cy - rect.top;
+      panX = ox - (ox - panX) * (newScale / scale);
+      panY = oy - (oy - panY) * (newScale / scale);
+      scale = newScale;
+      applyTransform();
+    }
+    function fitToScreen() {
+      const bbox = canvas._bbox; if (!bbox) return;
+      const rect = viewport.getBoundingClientRect();
+      const sx = (rect.width - 60) / bbox.w;
+      const sy = (rect.height - 100) / bbox.h;
+      scale = Math.min(1.2, Math.min(sx, sy));
+      panX = (rect.width - bbox.w * scale) / 2;
+      panY = (rect.height - bbox.h * scale) / 2 + 20;
+      applyTransform();
+    }
+
+    viewport.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
+      zoomAt(factor, e.clientX, e.clientY);
+    }, { passive: false });
+
+    let isPanning = false, startX = 0, startY = 0, startPanX = 0, startPanY = 0;
+    viewport.addEventListener("mousedown", (e) => {
+      if (e.target.closest(".node")) return;
+      isPanning = true; viewport.classList.add("panning");
+      startX = e.clientX; startY = e.clientY; startPanX = panX; startPanY = panY;
+      // לחיצה על רקע = ביטול בחירה
+      selectedId = null; applySelectionStyles(); sidePanel.classList.remove("open");
+    });
+    window.addEventListener("mousemove", (e) => {
+      if (!isPanning) return;
+      panX = startPanX + (e.clientX - startX);
+      panY = startPanY + (e.clientY - startY);
+      applyTransform();
+    });
+    window.addEventListener("mouseup", () => { isPanning = false; viewport.classList.remove("panning"); });
+
+    // מגע (טלפון/טאבלט) — גרירה וצביטה
+    let touchMode = null, lastTouchDist = 0, lastTouchMid = null;
+    viewport.addEventListener("touchstart", (e) => {
+      if (e.target.closest(".node")) return;
+      if (e.touches.length === 1) {
+        touchMode = "pan";
+        startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+        startPanX = panX; startPanY = panY;
+      } else if (e.touches.length === 2) {
+        touchMode = "pinch";
+        lastTouchDist = touchDist(e);
+        lastTouchMid = touchMid(e);
+      }
+    }, { passive: true });
+    viewport.addEventListener("touchmove", (e) => {
+      if (touchMode === "pan" && e.touches.length === 1) {
+        panX = startPanX + (e.touches[0].clientX - startX);
+        panY = startPanY + (e.touches[0].clientY - startY);
+        applyTransform();
+      } else if (touchMode === "pinch" && e.touches.length === 2) {
+        e.preventDefault();
+        const d = touchDist(e), mid = touchMid(e);
+        zoomAt(d / lastTouchDist, mid.x, mid.y);
+        lastTouchDist = d;
+      }
+    }, { passive: false });
+    viewport.addEventListener("touchend", () => { touchMode = null; });
+    function touchDist(e) { const a = e.touches[0], b = e.touches[1]; return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY); }
+    function touchMid(e) { const a = e.touches[0], b = e.touches[1]; return { x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 }; }
+
+    $("zoomIn").addEventListener("click", () => { const r = viewport.getBoundingClientRect(); zoomAt(1.2, r.left + r.width / 2, r.top + r.height / 2); });
+    $("zoomOut").addEventListener("click", () => { const r = viewport.getBoundingClientRect(); zoomAt(1 / 1.2, r.left + r.width / 2, r.top + r.height / 2); });
+    $("zoomFit").addEventListener("click", fitToScreen);
+
+    // ---------- קיצורי מקלדת ----------
+    window.addEventListener("keydown", (e) => {
+      if (editing) return;
+      const tag = (e.target.tagName || "").toLowerCase();
+      if (tag === "input" || tag === "textarea" || tag === "select") return;
+      if (!selectedId) return;
+      if (e.key === "Tab") { e.preventDefault(); addChild(selectedId); }
+      else if (e.key === "Enter") { e.preventDefault(); addSibling(selectedId); }
+      else if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); deleteNode(selectedId); }
+      else if (e.key === "F2") { e.preventDefault(); startInlineEdit(selectedId); }
+      else if (e.key === " ") {
+        e.preventDefault();
+        const res = findNode(selectedId);
+        if (res && res.node.children.length) { res.node.collapsed = !res.node.collapsed; saveStore(); render(); selectNode(selectedId); }
+      }
+    });
+
+    // ---------- בורר מפות ----------
+    function refreshMapSelect() {
+      const sel = $("mapSelect");
+      sel.innerHTML = "";
+      store.maps.forEach(m => {
+        const o = document.createElement("option");
+        o.value = m.id; o.textContent = m.name;
+        if (m.id === activeId) o.selected = true;
+        sel.appendChild(o);
+      });
+    }
+    $("mapSelect").addEventListener("change", (e) => {
+      activeId = e.target.value; selectedId = null;
+      saveStore(); render(); fitToScreen(); sidePanel.classList.remove("open");
+    });
+    $("newMapBtn").addEventListener("click", () => {
+      promptModal("מפה חדשה", "שם המפה:", "מפה חדשה", (name) => {
+        const m = { id: uid(), name: name || "מפה חדשה", root: node("נושא מרכזי", "#6366f1") };
+        store.maps.push(m); activeId = m.id; selectedId = null;
+        saveStore(); refreshMapSelect(); render(); fitToScreen();
+      });
+    });
+    $("renameMapBtn").addEventListener("click", () => {
+      const m = activeMap();
+      promptModal("שינוי שם מפה", "שם חדש:", m.name, (name) => {
+        if (name) { m.name = name; saveStore(); refreshMapSelect(); }
+      });
+    });
+    $("deleteMapBtn").addEventListener("click", () => {
+      if (store.maps.length <= 1) { toast("חייבת להישאר לפחות מפה אחת"); return; }
+      if (!confirm(`למחוק את המפה "${activeMap().name}"?`)) return;
+      store.maps = store.maps.filter(m => m.id !== activeId);
+      activeId = store.maps[0].id; selectedId = null;
+      saveStore(); refreshMapSelect(); render(); fitToScreen();
+    });
+
+    // ---------- פתח/קפל הכל ----------
+    $("expandAllBtn").addEventListener("click", () => { walk(activeMap().root, n => n.collapsed = false); saveStore(); render(); fitToScreen(); });
+    $("collapseAllBtn").addEventListener("click", () => {
+      // קפל הכל מלבד השורש והרמה הראשונה
+      walk(activeMap().root, n => { if (n._depth >= 1) n.collapsed = true; });
+      activeMap().root.collapsed = false;
+      saveStore(); render(); fitToScreen();
+    });
+
+    // ---------- ייצוא / ייבוא ----------
+    $("exportJsonBtn").addEventListener("click", () => {
+      const data = JSON.stringify({ name: activeMap().name, root: stripMeta(activeMap().root) }, null, 2);
+      download(data, sanitize(activeMap().name) + ".json", "application/json");
+    });
+    function stripMeta(n) {
+      return { text: n.text, color: n.color, note: n.note, collapsed: n.collapsed, children: n.children.map(stripMeta) };
+    }
+    function reviveIds(n) {
+      const nn = node(n.text, n.color || null, [], n.note || "");
+      nn.collapsed = !!n.collapsed;
+      nn.children = (n.children || []).map(reviveIds);
+      return nn;
+    }
+    $("importJsonBtn").addEventListener("click", () => $("fileInput").click());
+    $("fileInput").addEventListener("change", (e) => {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result);
+          const root = reviveIds(data.root || data);
+          const m = { id: uid(), name: (data.name || file.name.replace(/\.json$/, "")) + " (מיובא)", root };
+          store.maps.push(m); activeId = m.id; selectedId = null;
+          saveStore(); refreshMapSelect(); render(); fitToScreen();
+          toast("המפה יובאה בהצלחה");
+        } catch (err) { toast("קובץ לא תקין"); }
+        e.target.value = "";
+      };
+      reader.readAsText(file);
+    });
+
+    $("exportPngBtn").addEventListener("click", exportPng);
+    function exportPng() {
+      const svg = buildExportSvg();
+      const blob = new Blob([svg.markup], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+      img.onload = () => {
+        const cnv = document.createElement("canvas");
+        const scaleF = 2;
+        cnv.width = svg.w * scaleF; cnv.height = svg.h * scaleF;
+        const ctx = cnv.getContext("2d");
+        ctx.fillStyle = "#0f172a";
+        ctx.fillRect(0, 0, cnv.width, cnv.height);
+        ctx.drawImage(img, 0, 0, cnv.width, cnv.height);
+        URL.revokeObjectURL(url);
+        cnv.toBlob((b) => {
+          const u = URL.createObjectURL(b);
+          const a = document.createElement("a");
+          a.href = u; a.download = sanitize(activeMap().name) + ".png"; a.click();
+          setTimeout(() => URL.revokeObjectURL(u), 1000);
+          toast("התמונה יוצאה");
+        }, "image/png");
+      };
+      img.onerror = () => toast("שגיאה בייצוא התמונה");
+      img.src = url;
+    }
+
+    // בונה SVG עצמאי לייצוא (מצייר מלבנים, טקסט וקשתות)
+    function buildExportSvg() {
+      const root = activeMap().root;
+      const visible = [];
+      (function collect(n) { visible.push(n); if (!n.collapsed) n.children.forEach(collect); })(root);
+      // מדידות _w/_h כבר קיימות מ-render; ודא layout עדכני
+      computeLayout();
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const n of visible) {
+        minX = Math.min(minX, n._x - n._w / 2); maxX = Math.max(maxX, n._x + n._w / 2);
+        minY = Math.min(minY, n._y - n._h / 2); maxY = Math.max(maxY, n._y + n._h / 2);
+      }
+      const pad = 50;
+      const offX = -minX + pad, offY = -minY + pad;
+      const w = (maxX - minX) + pad * 2, h = (maxY - minY) + pad * 2;
+
+      let edges = "", boxes = "";
+      for (const n of visible) {
+        if (!n.collapsed) for (const c of n.children) {
+          const px = n._x + offX - n._w / 2, py = n._y + offY;
+          const cx = c._x + offX + c._w / 2, cy = c._y + offY;
+          const midX = (px + cx) / 2;
+          edges += `<path d="M ${px} ${py} C ${midX} ${py}, ${midX} ${cy}, ${cx} ${cy}" stroke="${effectiveColor(c)}" stroke-width="2" fill="none" opacity="0.6"/>`;
+        }
+      }
+      for (const n of visible) {
+        const x = n._x + offX - n._w / 2, y = n._y + offY - n._h / 2;
+        const col = effectiveColor(n);
+        const isRoot = n === root;
+        const fill = isRoot ? "#2a2456" : "#1e293b";
+        boxes += `<rect x="${x}" y="${y}" width="${n._w}" height="${n._h}" rx="13" fill="${fill}" stroke="${col}" stroke-width="1.5"/>`;
+        // טקסט (כולל ריבוי שורות)
+        const lines = String(n.text).split("\n");
+        const lh = isRoot ? 22 : 18;
+        const startY = n._y + offY - ((lines.length - 1) * lh) / 2 + (isRoot ? 6 : 5);
+        lines.forEach((ln, i) => {
+          boxes += `<text x="${n._x + offX}" y="${startY + i * lh}" fill="#f8fafc" font-family="Heebo, sans-serif" font-size="${isRoot ? 17 : 14}" font-weight="${isRoot ? 700 : 500}" text-anchor="middle" direction="rtl">${escapeXml(ln)}</text>`;
+        });
+      }
+      const markup = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><rect width="${w}" height="${h}" fill="#0f172a"/>${edges}${boxes}</svg>`;
+      return { markup, w, h };
+    }
+
+    // ---------- מודלים / טוסט ----------
+    const overlay = $("overlay"), modal = $("modal");
+    function closeOverlay() { overlay.classList.remove("open"); }
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) closeOverlay(); });
+
+    function promptModal(title, label, def, cb) {
+      modal.innerHTML = `<h2>${escapeHtml(title)}</h2><p>${escapeHtml(label)}</p><input type="text" id="modalInput" value="${escapeHtml(def || "")}"/><div class="modal-actions"><button class="tb primary" id="modalOk">אישור</button><button class="tb" id="modalCancel">ביטול</button></div>`;
+      overlay.classList.add("open");
+      const input = $("modalInput");
+      input.focus(); input.select();
+      const ok = () => { const v = input.value.trim(); closeOverlay(); cb(v); };
+      $("modalOk").addEventListener("click", ok);
+      $("modalCancel").addEventListener("click", closeOverlay);
+      input.addEventListener("keydown", (e) => { if (e.key === "Enter") ok(); if (e.key === "Escape") closeOverlay(); });
+    }
+
+    $("helpBtn").addEventListener("click", () => {
+      modal.innerHTML = `
+        <h2>איך משתמשים? 🧠</h2>
+        <ul>
+          <li><b>הוספה:</b> בחר צומת ולחץ <kbd>Tab</kbd> (צומת-בן) או <kbd>Enter</kbd> (צומת-אח).</li>
+          <li><b>עריכה:</b> לחיצה כפולה על צומת, או <kbd>F2</kbd>.</li>
+          <li><b>מחיקה:</b> <kbd>Delete</kbd>.</li>
+          <li><b>קיפול ענף:</b> כפתור העיגול שעל הצומת או <kbd>רווח</kbd>.</li>
+          <li><b>הזזה:</b> גרירת הרקע. <b>זום:</b> גלגלת / צביטה / כפתורי הזום.</li>
+          <li><b>פאנל צד:</b> צבעים והערות לכל צומת (נקודת מידע על צומת = יש הערה).</li>
+          <li><b>מפות:</b> מעבר בין מפות בתפריט למעלה; אפשר ליצור, לשנות שם ולמחוק.</li>
+          <li><b>שמירה:</b> אוטומטית בדפדפן. גיבוי/שיתוף דרך <b>ייצוא JSON</b>. ייצוא תמונה דרך <b>PNG</b>.</li>
+        </ul>
+        <p style="margin-top:1rem">הכלי עצמאי לחלוטין — אפשר להעלות את הקובץ לכל שרת (כולל ענן ויצמן) והוא יעבוד גם ללא אינטרנט.</p>
+        <div class="modal-actions"><button class="tb primary" id="modalOk">הבנתי</button></div>`;
+      overlay.classList.add("open");
+      $("modalOk").addEventListener("click", closeOverlay);
+    });
+
+    let toastTimer;
+    function toast(msg) {
+      const t = $("toast"); t.textContent = msg; t.classList.add("show");
+      clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
+    }
+
+    // ---------- עזרים ----------
+    function download(content, filename, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = filename; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+    function sanitize(s) { return String(s).replace(/[^\w֐-׿\- ]+/g, "").replace(/\s+/g, "_").slice(0, 60) || "mindmap"; }
+    function escapeHtml(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+    function escapeXml(s) { return String(s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c])); }
+
+    // ---------- אתחול ----------
+    refreshMapSelect();
+    render();
+    fitToScreen();
+    window.addEventListener("resize", () => applyTransform());
+
+    // הצג עזרה בביקור ראשון
+    if (!localStorage.getItem(STORAGE_KEY + "_seen")) {
+      setTimeout(() => $("helpBtn").click(), 400);
+      localStorage.setItem(STORAGE_KEY + "_seen", "1");
+    }
+  })();
+  </script>
+</body>
+</html>
