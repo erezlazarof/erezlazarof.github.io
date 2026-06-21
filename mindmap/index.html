@@ -476,7 +476,7 @@
       "#6366f1", "#8b5cf6", "#14b8a6", "#0ea5e9",
       "#f59e0b", "#ef4444", "#ec4899", "#22c55e", "#64748b"
     ];
-    const STORAGE_KEY = "gutwirth_journey_maps_v6";
+    const STORAGE_KEY = "gutwirth_journey_maps_v7";
     /*SEED_DATA_START*/
     window.SEED_DATA = null;
     /*SEED_DATA_END*/
@@ -650,6 +650,51 @@
       ]);
     }
 
+    // ציר החיים המלא של הסטודנט — מהרשמה ועד התואר. עמוד השדרה של הכלי.
+    // שלב המיון/קבלה המפורט משובץ כשלב 1; שאר השלבים שלד שמתמלא תוך כדי.
+    function seedStudentLifecycle() {
+      const adm = seedCandidateJourney(); // עץ המיון והקבלה המלא
+      const p1 = node("שלב 1 · מועמדות, מיון וקבלה", "#0ea5e9", adm.children,
+        "מהרשמה ובדיקת תיקים, דרך מבחנים, ראיונות והערכה, ועד החלטת ועדת הקבלה. מבוסס על אפיון תהליך המיון והקבלה (MD-PhD).");
+      p1.collapsed = true;
+      return node("מסע הסטודנט — מהרשמה ועד התואר\nמסלול MD-PhD · בי״ס לרפואה ע״ש גוטוויירט", "#6366f1", [
+        p1,
+        node("שלב 2 · קבלה וקליטה", "#14b8a6", [
+          node("מכתב קבלה / הצעה"),
+          node("אישור הגעה (Handoff)"),
+          node("מקדמה / שריון מקום"),
+          node("אוריינטציה והיכרות"),
+          node("שיבוץ ראשוני ורישום לקורסים"),
+        ], "להשלמה — ייבנה תוך כדי."),
+        node("שלב 3 · לימודים פרה-קליניים", "#f59e0b", [
+          node("מדעי יסוד"),
+          node("אנטומיה ופיזיולוגיה"),
+          node("מיומנויות קליניות בסיסיות"),
+          node("בחינות שלב"),
+        ], "להשלמה — ייבנה תוך כדי."),
+        node("שלב 4 · מסלול מחקר (PhD)", "#8b5cf6", [
+          node("בחירת מנחה ושיבוץ למעבדה"),
+          node("הצעת מחקר"),
+          node("עבודת מחקר ופרסומים"),
+          node("הגנת תזה"),
+        ], "להשלמה — ייבנה תוך כדי."),
+        node("שלב 5 · לימודים קליניים", "#0ea5e9", [
+          node("סבבים מחלקתיים"),
+          node("הכשרה מעשית בבתי חולים"),
+          node("בחינות קליניות"),
+        ], "להשלמה — ייבנה תוך כדי."),
+        node("שלב 6 · הסמכה וסטאז׳", "#ec4899", [
+          node("בחינות מסכמות"),
+          node("סטאז׳"),
+          node("רישוי"),
+        ], "להשלמה — ייבנה תוך כדי."),
+        node("שלב 7 · קבלת התואר ובוגרים", "#22c55e", [
+          node("טקס סיום והענקת תארים (MD-PhD)"),
+          node("רשת בוגרים (Alumni)"),
+        ], "להשלמה — ייבנה תוך כדי."),
+      ]);
+    }
+
     // ---------- זרע תרשימי זרימה (DAG: צמתים + קשתות עם חיצים) ----------
     function fnode(id, text, shape, color, note) {
       return { id: id, text: text, shape: shape || "process", color: color || null, note: note || "" };
@@ -752,13 +797,14 @@
     // ---------- אחסון ----------
     // 4 המפות המוקפדות בעבודת-יד — תמיד נוכחות
     function curatedMaps() {
-      const m1 = { id: uid(), name: "מיון וקבלה MD-PhD — אפיון יוני 2026", root: seedCandidateJourney() };
-      const m2 = { id: uid(), name: "מסע הסטודנט — מקבלה ועד סיום", root: seedStudentJourney() };
+      // ציר החיים של הסטודנט הוא עמוד השדרה והמפה הראשית (ברירת מחדל)
+      const lc = { id: uid(), name: "מסע הסטודנט — מהרשמה ועד התואר", root: seedStudentLifecycle() };
+      const m2 = { id: uid(), name: "מיון וקבלה MD-PhD — אפיון יוני 2026", root: seedCandidateJourney() };
       const sf = seedStageFlow();
       const m3 = { id: uid(), name: "תרשים זרימה — תהליך המיון", type: "flow", nodes: sf.nodes, edges: sf.edges };
       const st = seedStatusFlow();
       const m4 = { id: uid(), name: "תרשים זרימה — מודל סטטוסים", type: "flow", nodes: st.nodes, edges: st.edges };
-      return [m1, m2, m3, m4];
+      return [lc, m2, m3, m4];
     }
     function legacyDefaultStore() {
       const maps = curatedMaps();
