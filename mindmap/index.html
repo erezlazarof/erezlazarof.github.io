@@ -221,6 +221,56 @@
       background: linear-gradient(135deg, rgba(245,158,11,0.18), rgba(245,158,11,0.05));
     }
 
+    /* ===== Search ===== */
+    .search-group { position: relative; }
+    .search-input {
+      font-family: inherit; font-size: 0.85rem; color: var(--text);
+      background: rgba(255,255,255,0.06); border: 1px solid var(--panel-border);
+      border-radius: 9px; padding: 0.45rem 0.7rem; width: 190px; transition: width 0.15s;
+    }
+    .search-input:focus { outline: none; border-color: var(--accent); width: 250px; }
+    .search-results {
+      position: absolute; top: calc(100% + 6px); inset-inline-start: 0;
+      width: 380px; max-width: 82vw; max-height: 56vh; overflow-y: auto;
+      background: var(--panel-bg); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--panel-border); border-radius: 12px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.55); display: none; z-index: 60;
+    }
+    .search-results.open { display: block; }
+    .search-result { padding: 0.5rem 0.8rem; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .search-result:last-child { border-bottom: none; }
+    .search-result:hover, .search-result.active { background: rgba(99,102,241,0.18); }
+    .search-result .sr-map { font-size: 0.66rem; color: var(--text-muted); margin-bottom: 1px; }
+    .search-result .sr-text { font-size: 0.9rem; color: var(--text); line-height: 1.3; }
+    .search-result .sr-note { font-size: 0.72rem; color: var(--text-faint); margin-top: 2px; line-height: 1.35; }
+    .search-result mark { background: rgba(245,158,11,0.45); color: #fff; border-radius: 3px; padding: 0 2px; }
+
+    /* ===== Markdown note view ===== */
+    .note-toggle {
+      font-family: inherit; font-size: 0.68rem; background: rgba(255,255,255,0.08);
+      border: 1px solid var(--panel-border); color: var(--text-muted);
+      border-radius: 6px; padding: 0.1rem 0.45rem; cursor: pointer; margin-inline-start: 0.4rem;
+    }
+    .note-toggle:hover { color: var(--text); }
+    .note-view.md {
+      font-size: 0.85rem; line-height: 1.55; color: var(--text);
+      background: rgba(255,255,255,0.04); border: 1px solid var(--panel-border);
+      border-radius: 10px; padding: 0.6rem 0.7rem; max-height: 42vh; overflow-y: auto; direction: rtl;
+      word-break: break-word;
+    }
+    .note-view.md .md-empty { color: var(--text-faint); }
+    .note-view.md h4, .note-view.md h5, .note-view.md h6 { margin: 0.5rem 0 0.25rem; font-size: 0.92rem; color: var(--text); }
+    .note-view.md p { margin: 0.35rem 0; }
+    .note-view.md ul, .note-view.md ol { margin: 0.25rem 1.3rem; }
+    .note-view.md li { margin: 0.1rem 0; }
+    .note-view.md code { background: rgba(255,255,255,0.08); padding: 0 3px; border-radius: 4px; font-size: 0.8rem; }
+    .note-view.md pre { background: rgba(0,0,0,0.3); padding: 0.5rem; border-radius: 8px; overflow: auto; }
+    .note-view.md pre code { background: none; padding: 0; }
+    .note-view.md a { color: var(--accent); }
+    .note-view.md table { border-collapse: collapse; width: 100%; font-size: 0.76rem; margin: 0.35rem 0; }
+    .note-view.md th, .note-view.md td { border: 1px solid var(--panel-border); padding: 0.22rem 0.4rem; text-align: right; }
+    .note-view.md th { background: rgba(255,255,255,0.06); }
+
     /* ===== Side panel ===== */
     .side-panel {
       position: fixed;
@@ -347,6 +397,11 @@
       <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
     </button>
 
+    <div class="tb-group search-group">
+      <input type="text" id="searchInput" class="search-input" placeholder="חיפוש בכל המפות…" autocomplete="off" />
+      <div id="searchResults" class="search-results"></div>
+    </div>
+
     <div class="tb-spacer"></div>
 
     <div class="tb-group">
@@ -379,8 +434,9 @@
     <h3>עריכת צומת</h3>
     <label for="nodeText">טקסט</label>
     <input type="text" id="nodeText" />
-    <label for="nodeNote">הערה / פירוט</label>
-    <textarea id="nodeNote" placeholder="מדדים, אחראים, הערות, קישורים..."></textarea>
+    <label for="nodeNote">הערה / פירוט <button type="button" id="noteEditToggle" class="note-toggle">עריכה</button></label>
+    <div id="noteView" class="note-view md"></div>
+    <textarea id="nodeNote" placeholder="מדדים, אחראים, הערות, קישורים..." style="display:none"></textarea>
     <label>צבע</label>
     <div class="swatches" id="swatches"></div>
     <div class="panel-actions">
@@ -420,7 +476,10 @@
       "#6366f1", "#8b5cf6", "#14b8a6", "#0ea5e9",
       "#f59e0b", "#ef4444", "#ec4899", "#22c55e", "#64748b"
     ];
-    const STORAGE_KEY = "gutwirth_journey_maps_v5";
+    const STORAGE_KEY = "gutwirth_journey_maps_v6";
+    /*SEED_DATA_START*/
+    window.SEED_DATA = null;
+    /*SEED_DATA_END*/
     const H_GAP = 70;   // מרווח אופקי בין עמודות
     const V_GAP = 16;   // מרווח אנכי בין צמתים
 
@@ -691,26 +750,46 @@
     const edgesSvg = $("edges");
 
     // ---------- אחסון ----------
-    function loadStore() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (parsed && parsed.maps && parsed.maps.length) return parsed;
-        }
-      } catch (e) { /* ignore */ }
-      // ברירת מחדל: שתי מפות עץ + שני תרשימי זרימה
+    // 4 המפות המוקפדות בעבודת-יד — תמיד נוכחות
+    function curatedMaps() {
       const m1 = { id: uid(), name: "מיון וקבלה MD-PhD — אפיון יוני 2026", root: seedCandidateJourney() };
       const m2 = { id: uid(), name: "מסע הסטודנט — מקבלה ועד סיום", root: seedStudentJourney() };
       const sf = seedStageFlow();
       const m3 = { id: uid(), name: "תרשים זרימה — תהליך המיון", type: "flow", nodes: sf.nodes, edges: sf.edges };
       const st = seedStatusFlow();
       const m4 = { id: uid(), name: "תרשים זרימה — מודל סטטוסים", type: "flow", nodes: st.nodes, edges: st.edges };
-      return { maps: [m1, m2, m3, m4], activeId: m1.id };
+      return [m1, m2, m3, m4];
+    }
+    function legacyDefaultStore() {
+      const maps = curatedMaps();
+      return { maps: maps, activeId: maps[0].id };
+    }
+    // ממיר מפות SEED_DATA: לעצים מקצים ids חדשים; ל-flow שומרים ids מילוליים (הקשתות תלויות בהם)
+    function reviveStore(seed) {
+      const curated = curatedMaps();
+      const generated = (seed.maps || []).map(m => {
+        if (m.type === "flow") return { id: uid(), name: m.name, type: "flow", nodes: m.nodes, edges: m.edges };
+        return { id: uid(), name: m.name, root: reviveIds(m.root) };
+      });
+      const maps = curated.concat(generated);
+      return { version: seed.version || 0, maps: maps, activeId: maps[0].id };
+    }
+    function loadStore() {
+      const seed = window.SEED_DATA;
+      let saved = null;
+      try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) saved = JSON.parse(raw); } catch (e) { /* ignore */ }
+      if (seed && seed.maps && seed.maps.length) {
+        // build חדש (version גבוה) גובר על cache ישן; אותה גרסה — שומרים עריכות המשתמש
+        if (!saved || (saved.version || 0) < (seed.version || 0)) return reviveStore(seed);
+        return saved;
+      }
+      if (saved && saved.maps && saved.maps.length) return saved;
+      return legacyDefaultStore();
     }
 
     function saveStore() {
       store.activeId = activeId;
+      if (window.SEED_DATA && window.SEED_DATA.version) store.version = window.SEED_DATA.version;
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); } catch (e) { toast("שגיאת שמירה"); }
     }
 
@@ -1136,6 +1215,10 @@
       const n = res.node;
       $("nodeText").value = n.text;
       $("nodeNote").value = n.note || "";
+      $("noteView").innerHTML = mdToHtml(n.note || "");
+      $("noteView").style.display = "";
+      $("nodeNote").style.display = "none";
+      $("noteEditToggle").textContent = "עריכה";
       buildSwatches(n.color);
       const isFlow = activeMap().type === "flow";
       $("addChildBtn").style.display = isFlow ? "none" : "";
@@ -1172,6 +1255,20 @@
       res.node.note = e.target.value;
     });
     $("nodeNote").addEventListener("change", () => { saveStore(); render(); selectNode(selectedId); });
+    $("noteEditToggle").addEventListener("click", () => {
+      const editing = $("nodeNote").style.display !== "none";
+      if (editing) {
+        $("nodeNote").style.display = "none";
+        $("noteView").style.display = "";
+        $("noteView").innerHTML = mdToHtml($("nodeNote").value);
+        $("noteEditToggle").textContent = "עריכה";
+      } else {
+        $("noteView").style.display = "none";
+        $("nodeNote").style.display = "";
+        $("nodeNote").focus();
+        $("noteEditToggle").textContent = "תצוגה";
+      }
+    });
     $("addChildBtn").addEventListener("click", () => selectedId && addChild(selectedId));
     $("addSiblingBtn").addEventListener("click", () => selectedId && addSibling(selectedId));
     $("deleteNodeBtn").addEventListener("click", () => selectedId && deleteNode(selectedId));
@@ -1530,6 +1627,164 @@
     function sanitize(s) { return String(s).replace(/[^\w֐-׿\- ]+/g, "").replace(/\s+/g, "_").slice(0, 60) || "mindmap"; }
     function escapeHtml(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
     function escapeXml(s) { return String(s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c])); }
+
+    // ---------- מנוע Markdown בטוח (להערות עשירות) ----------
+    function mdInline(s) {
+      return s
+        .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+        .replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>")
+        .replace(/`([^`]+)`/g, "<code>$1</code>")
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (m, t, u) => {
+          u = u.trim();
+          return /^(https?:|mailto:)/i.test(u) ? '<a href="' + u + '" target="_blank" rel="noopener">' + t + "</a>" : t;
+        });
+    }
+    function mdTable(rows) {
+      const parse = r => r.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map(c => c.trim());
+      let out = "<table>", header = true;
+      rows.forEach(r => {
+        if (/^[\s|:-]+$/.test(r) && r.indexOf("-") >= 0) { header = false; return; }
+        const cells = parse(r), tag = header ? "th" : "td";
+        out += "<tr>" + cells.map(c => "<" + tag + ">" + mdInline(c) + "</" + tag + ">").join("") + "</tr>";
+        header = false;
+      });
+      return out + "</table>";
+    }
+    function mdToHtml(src) {
+      src = String(src || "");
+      if (!src.trim()) return '<span class="md-empty">— אין הערה —</span>';
+      const lines = escapeHtml(src).split("\n");
+      let html = "", i = 0;
+      while (i < lines.length) {
+        const line = lines[i];
+        if (/^\s*```/.test(line)) {
+          const buf = []; i++;
+          while (i < lines.length && !/^\s*```/.test(lines[i])) { buf.push(lines[i]); i++; }
+          i++; html += "<pre><code>" + buf.join("\n") + "</code></pre>"; continue;
+        }
+        const hm = /^(#{1,6})\s+(.*)$/.exec(line);
+        if (hm) { const lvl = Math.min(6, hm[1].length + 3); html += "<h" + lvl + ">" + mdInline(hm[2]) + "</h" + lvl + ">"; i++; continue; }
+        if (/^\s*\|.*\|\s*$/.test(line)) {
+          const rows = [];
+          while (i < lines.length && /^\s*\|.*\|\s*$/.test(lines[i])) { rows.push(lines[i].trim()); i++; }
+          html += mdTable(rows); continue;
+        }
+        if (/^\s*([-*+]|\d+[.)])\s+/.test(line)) {
+          const ordered = /^\s*\d+[.)]/.test(line), items = [];
+          while (i < lines.length && /^\s*([-*+]|\d+[.)])\s+/.test(lines[i])) { items.push(lines[i].replace(/^\s*([-*+]|\d+[.)])\s+/, "")); i++; }
+          html += (ordered ? "<ol>" : "<ul>") + items.map(it => "<li>" + mdInline(it) + "</li>").join("") + (ordered ? "</ol>" : "</ul>"); continue;
+        }
+        if (/^\s*$/.test(line)) { i++; continue; }
+        const para = [];
+        while (i < lines.length && !/^\s*$/.test(lines[i]) && !/^(#{1,6})\s/.test(lines[i]) &&
+               !/^\s*([-*+]|\d+[.)])\s+/.test(lines[i]) && !/^\s*\|.*\|\s*$/.test(lines[i]) && !/^\s*```/.test(lines[i])) {
+          para.push(lines[i]); i++;
+        }
+        html += "<p>" + para.map(mdInline).join("<br>") + "</p>";
+      }
+      return html;
+    }
+
+    // ---------- חיפוש גלובלי ----------
+    let searchIndex = [], searchHits = [], searchSel = -1, searchTimer = null;
+    const searchInput = $("searchInput"), searchResults = $("searchResults");
+    function buildSearchIndex() {
+      searchIndex = [];
+      store.maps.forEach(m => {
+        if (m.type === "flow") { (m.nodes || []).forEach(n => searchIndex.push(idxEntry(m, n.id, n.text, n.note))); }
+        else if (m.root) { walk(m.root, n => searchIndex.push(idxEntry(m, n.id, n.text, n.note))); }
+      });
+    }
+    function idxEntry(m, nodeId, text, note) {
+      return { mapId: m.id, mapName: m.name, nodeId: nodeId, text: text || "", note: note || "", hay: ((text || "") + " " + (note || "")).toLowerCase() };
+    }
+    function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+    function highlight(text, terms) {
+      let out = escapeHtml(text || "");
+      terms.forEach(t => { if (t) out = out.replace(new RegExp("(" + escapeRe(t) + ")", "gi"), "<mark>$1</mark>"); });
+      return out;
+    }
+    function noteSnippet(note, term) {
+      const idx = note.toLowerCase().indexOf(term);
+      if (idx < 0) return note.slice(0, 90);
+      const start = Math.max(0, idx - 35);
+      return (start > 0 ? "…" : "") + note.slice(start, start + 100) + (note.length > start + 100 ? "…" : "");
+    }
+    function runSearch(q) {
+      q = (q || "").trim().toLowerCase();
+      if (q.length < 2) { hideResults(); return; }
+      const terms = q.split(/\s+/);
+      searchHits = searchIndex.filter(e => terms.every(t => e.hay.includes(t))).slice(0, 50);
+      renderResults(terms);
+    }
+    function renderResults(terms) {
+      if (!searchHits.length) {
+        searchResults.innerHTML = '<div class="search-result"><div class="sr-text">אין תוצאות</div></div>';
+        searchResults.classList.add("open"); searchSel = -1; return;
+      }
+      searchSel = 0;
+      const t0 = terms[0];
+      searchResults.innerHTML = searchHits.map((h, i) => {
+        const inText = h.text.toLowerCase().includes(t0);
+        const noteHtml = (!inText && h.note) ? '<div class="sr-note">' + highlight(noteSnippet(h.note, t0), terms) + "</div>" : "";
+        return '<div class="search-result' + (i === 0 ? " active" : "") + '" data-i="' + i + '">' +
+          '<div class="sr-map">' + escapeHtml(h.mapName) + "</div>" +
+          '<div class="sr-text">' + highlight(h.text, terms) + "</div>" + noteHtml + "</div>";
+      }).join("");
+      searchResults.classList.add("open");
+      Array.from(searchResults.querySelectorAll(".search-result")).forEach(el => {
+        if (el.dataset.i == null) return;
+        el.addEventListener("click", () => { const h = searchHits[+el.dataset.i]; if (h) openHit(h); });
+      });
+    }
+    function moveSearchSel(d) {
+      const els = searchResults.querySelectorAll(".search-result[data-i]");
+      if (!els.length) return;
+      if (els[searchSel]) els[searchSel].classList.remove("active");
+      searchSel = (searchSel + d + searchHits.length) % searchHits.length;
+      if (els[searchSel]) { els[searchSel].classList.add("active"); els[searchSel].scrollIntoView({ block: "nearest" }); }
+    }
+    function hideResults() { searchResults.classList.remove("open"); searchSel = -1; }
+    function expandAncestors(nodeId) {
+      const m = activeMap();
+      if (m.type === "flow" || !m.root) return;
+      const trail = [];
+      (function find(n, path) {
+        if (n.id === nodeId) { path.forEach(p => trail.push(p)); return true; }
+        for (const c of n.children) if (find(c, path.concat(n))) return true;
+        return false;
+      })(m.root, []);
+      trail.forEach(n => { n.collapsed = false; });
+    }
+    function centerOnNode(id) {
+      const el = nodeEls[id];
+      if (!el) { fitToScreen(); return; }
+      const rect = viewport.getBoundingClientRect();
+      if (scale < 0.55) scale = 0.9;
+      scale = Math.min(scale, 1.5);
+      const nx = el.offsetLeft + el.offsetWidth / 2, ny = el.offsetTop + el.offsetHeight / 2;
+      panX = rect.width / 2 - nx * scale;
+      panY = rect.height / 2 - ny * scale;
+      applyTransform();
+    }
+    function openHit(h) {
+      if (h.mapId !== activeId) { activeId = h.mapId; selectedId = null; refreshMapSelect(); }
+      expandAncestors(h.nodeId);
+      saveStore(); render();
+      selectNode(h.nodeId);
+      centerOnNode(h.nodeId);
+      hideResults(); searchInput.blur();
+    }
+    searchInput.addEventListener("focus", buildSearchIndex);
+    searchInput.addEventListener("input", () => { clearTimeout(searchTimer); searchTimer = setTimeout(() => runSearch(searchInput.value), 120); });
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowDown") { e.preventDefault(); moveSearchSel(1); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); moveSearchSel(-1); }
+      else if (e.key === "Enter") { e.preventDefault(); if (searchHits[searchSel]) openHit(searchHits[searchSel]); }
+      else if (e.key === "Escape") { e.preventDefault(); hideResults(); searchInput.blur(); }
+      e.stopPropagation();
+    });
+    document.addEventListener("click", (e) => { if (!e.target.closest(".search-group")) hideResults(); });
 
     // ---------- אתחול ----------
     refreshMapSelect();
