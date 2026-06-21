@@ -476,7 +476,7 @@
       "#6366f1", "#8b5cf6", "#14b8a6", "#0ea5e9",
       "#f59e0b", "#ef4444", "#ec4899", "#22c55e", "#64748b"
     ];
-    const STORAGE_KEY = "gutwirth_journey_maps_v7";
+    const STORAGE_KEY = "gutwirth_journey_maps_v8";
     /*SEED_DATA_START*/
     window.SEED_DATA = null;
     /*SEED_DATA_END*/
@@ -795,36 +795,32 @@
     const edgesSvg = $("edges");
 
     // ---------- אחסון ----------
-    // 4 המפות המוקפדות בעבודת-יד — תמיד נוכחות
+    // המפות המוקפדות — ציר מסע הסטודנט (עמוד השדרה) + שני תרשימי זרימה
     function curatedMaps() {
-      // ציר החיים של הסטודנט הוא עמוד השדרה והמפה הראשית (ברירת מחדל)
       const lc = { id: uid(), name: "מסע הסטודנט — מהרשמה ועד התואר", root: seedStudentLifecycle() };
-      const m2 = { id: uid(), name: "מיון וקבלה MD-PhD — אפיון יוני 2026", root: seedCandidateJourney() };
       const sf = seedStageFlow();
       const m3 = { id: uid(), name: "תרשים זרימה — תהליך המיון", type: "flow", nodes: sf.nodes, edges: sf.edges };
       const st = seedStatusFlow();
       const m4 = { id: uid(), name: "תרשים זרימה — מודל סטטוסים", type: "flow", nodes: st.nodes, edges: st.edges };
-      return [lc, m2, m3, m4];
+      return [lc, m3, m4];
     }
     function legacyDefaultStore() {
       const maps = curatedMaps();
       return { maps: maps, activeId: maps[0].id };
     }
-    // ממיר מפות SEED_DATA: לעצים מקצים ids חדשים; ל-flow שומרים ids מילוליים (הקשתות תלויות בהם)
+    // SEED_DATA נושא ענף-ידע יחיד (knowledge) שנתלה תחת שורש מסע הסטודנט — הכל תחת מסלול אחד
     function reviveStore(seed) {
-      const curated = curatedMaps();
-      const generated = (seed.maps || []).map(m => {
-        if (m.type === "flow") return { id: uid(), name: m.name, type: "flow", nodes: m.nodes, edges: m.edges };
-        return { id: uid(), name: m.name, root: reviveIds(m.root) };
-      });
-      const maps = curated.concat(generated);
+      const maps = curatedMaps();
+      if (seed.knowledge && maps[0] && maps[0].root) {
+        maps[0].root.children.push(reviveIds(seed.knowledge));
+      }
       return { version: seed.version || 0, maps: maps, activeId: maps[0].id };
     }
     function loadStore() {
       const seed = window.SEED_DATA;
       let saved = null;
       try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) saved = JSON.parse(raw); } catch (e) { /* ignore */ }
-      if (seed && seed.maps && seed.maps.length) {
+      if (seed && seed.knowledge) {
         // build חדש (version גבוה) גובר על cache ישן; אותה גרסה — שומרים עריכות המשתמש
         if (!saved || (saved.version || 0) < (seed.version || 0)) return reviveStore(seed);
         return saved;
