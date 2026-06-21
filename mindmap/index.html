@@ -208,6 +208,19 @@
     .node-actions button.del:hover { background: rgba(239,68,68,0.2); color: #fca5a5; }
     .node-actions svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
+    /* ===== Flow (תרשים זרימה) nodes ===== */
+    .node.flow {
+      max-width: 290px;
+      text-align: center;
+      font-weight: 600;
+    }
+    .node.flow.shape-start,
+    .node.flow.shape-end { border-radius: 999px; }
+    .node.flow.shape-decision {
+      border-style: dashed;
+      background: linear-gradient(135deg, rgba(245,158,11,0.18), rgba(245,158,11,0.05));
+    }
+
     /* ===== Side panel ===== */
     .side-panel {
       position: fixed;
@@ -407,7 +420,7 @@
       "#6366f1", "#8b5cf6", "#14b8a6", "#0ea5e9",
       "#f59e0b", "#ef4444", "#ec4899", "#22c55e", "#64748b"
     ];
-    const STORAGE_KEY = "gutwirth_journey_maps_v4";
+    const STORAGE_KEY = "gutwirth_journey_maps_v5";
     const H_GAP = 70;   // מרווח אופקי בין עמודות
     const V_GAP = 16;   // מרווח אנכי בין צמתים
 
@@ -434,10 +447,23 @@
           node("סינון תושבות / אזרחות", null, [], "סטודנט זר אינו זכאי ללמוד בתוכנית; סינון בשלב זה בלבד."),
           node("זיהוי ספאם (SPAM)", null, [], "הגשה שזוהתה כלא אמיתית — רלוונטי לשלב הטופס בלבד."),
           node("זיהוי כפילויות לפי ת״ז", null, [], "זיהוי אוטומטי → התראה לרכזת → החלטה ידנית."),
+          node("מסמכי מועמדות", "#14b8a6", [
+            node("קו״ח (עברית + אנגלית)"),
+            node("אזרחות ותעודות"),
+            node("תארים: BSc / MSc + ציונים"),
+            node("קורסי חובה (דרישות קדם)", null, [
+              node("ביוכימיה · ביולוגיה של התא · גנטיקה"),
+              node("מיקרוביולוגיה · ביולוגיה מולקולרית · פיזיולוגיה"),
+              node("סטטיסטיקה · Python · R"),
+            ]),
+            node("אישור זכאות לתואר"),
+            node("3 ממליצים", null, [], "הממליצים מגישים דרך הפורטל; המועמד רואה את סטטוס ההעלאה."),
+          ], "מנוהל בפורטל המועמדים + קובץ מאוחד להורדה (קו״ח+ממליצים)."),
           node("בדיקת תיקים", null, [
             node("בודקי תיקים מסייעים", null, [], "סימון ׳נבדק׳ / ׳נשלחה TASK׳ בלבד — לא קביעת תוצאה. הקצאה דינמית (סטודנט/איש צוות)."),
             node("שליחת TASK להשלמות", null, [], "אישית פר מועמד; אינה מסונכרנת לקבוצה."),
           ]),
+          node("התאמות והקלות", null, [], "המועמד מבקש דרך הפורטל → דוח מרוכז מועבר לטופ-שיא."),
         ]),
         node("שלב ב׳ — מבחנים", "#14b8a6", [
           node("מבחנים דיגיטליים בטופ-שיא (TOP-C)"),
@@ -455,15 +481,27 @@
           node("מגבלת 3 ניסיונות לכל החיים", null, [], "דחייה אחרי ביצוע המבחן הדיגיטלי = ניסיון; אי-ביצוע המבחן = לא נספר (כאילו לא התחיל)."),
         ]),
         node("שלב ג׳ — ראיונות, סימולציה ומשימה חישובית", "#f59e0b", [
-          node("ראיונות"),
-          node("סימולציה"),
+          node("ראיונות MD", null, [], "6 ראיונות ליום לכל מראיין · 60 דק׳ כל אחד · 09:00–17:00 (הפסקה 12:30–13:30)."),
+          node("סימולציה", null, [], "12 סימולציות ליום · 30 דק׳ כל אחת · 10:15–18:15 (הפסקה 13:45–14:45)."),
           node("משימה חישובית", null, [], "מתבצעת דרך טופ-שיא."),
-          node("שיבוץ ותיעוד מראיינים", null, [], "מנוהל ב-Monday (מחוץ ל-BO; ישתקף בהמשך)."),
+          node("צוות מראיינים לכל מועמד", null, [
+            node("רופא"),
+            node("פסיכולוג"),
+            node("פסיכולוג סימולציה"),
+          ]),
+          node("4 ימי מיון", null, [], "1/6, 3/6, 4/6, 8/6/2026. שיבוץ חדרים + תיקיות קו״ח/המלצות לכל מראיין."),
+          node("שיבוץ ותיעוד מראיינים", null, [], "מנוהל ב-Monday (לוח ׳ימי מיון שלב ג׳ 2026׳); תפקידים: רופא/סימולציה/ניהול/גיבוי. מחוץ ל-BO; ישתקף בהמשך."),
         ]),
         node("שלב ד׳ — מרכז הערכה וראיון PhD", "#ef4444", [
           node("ימי הערכה (מרכז הערכה)"),
           node("ראיון PhD"),
           node("משימת דואר נכנס", null, [], "החריג היחיד שמתבצע מחוץ לטופ-שיא."),
+          node("צוות מעריכים לכל מועמד", null, [
+            node("רופא"),
+            node("פסיכולוג"),
+            node("2 ראשי קבוצות מחקר מהמכון"),
+          ]),
+          node("מקורות מעריכים", null, [], "פנימיים (חילן/תפנית), חיצוניים, גיבוי. תשלום כספקים. תיעוד מי העריך את מי — למניעת חזרה בשלב הבא."),
           node("שיבוץ ותיעוד מעריכים", null, [], "מנוהל ב-Monday."),
         ]),
         node("שלב סופי — מתקבלים ותגובות", "#22c55e", [
@@ -553,6 +591,93 @@
       ]);
     }
 
+    // ---------- זרע תרשימי זרימה (DAG: צמתים + קשתות עם חיצים) ----------
+    function fnode(id, text, shape, color, note) {
+      return { id: id, text: text, shape: shape || "process", color: color || null, note: note || "" };
+    }
+
+    function seedStageFlow() {
+      // תרשים זרימת השלבים עם שערי החלטה ותוצאות
+      const nodes = [
+        fnode("s", "הגשת מועמדות", "start", "#6366f1"),
+        fnode("a", "שלב א׳ — בדיקת תיקים", "process", "#0ea5e9"),
+        fnode("dA", "עומד בתנאי סף?", "decision", "#f59e0b"),
+        fnode("b", "שלב ב׳ — מבחנים דיגיטליים (טופ-שיא)", "process", "#14b8a6"),
+        fnode("dB", "עומד בסף הוועדה?", "decision", "#f59e0b", "סף קוגניטיבי + פסיכולוגי, נקבע פר מחזור ופר שלב."),
+        fnode("c", "שלב ג׳ — ראיונות · סימולציה · משימה חישובית", "process", "#f59e0b"),
+        fnode("dC", "עבר שלב ג׳?", "decision", "#f59e0b"),
+        fnode("d", "שלב ד׳ — מרכז הערכה + ראיון PhD", "process", "#ef4444"),
+        fnode("comm", "החלטת ועדת קבלה", "decision", "#8b5cf6"),
+        fnode("acc", "התקבל / קבלה על תנאי", "process", "#22c55e"),
+        fnode("wait", "רשימת המתנה", "process", "#0ea5e9"),
+        fnode("appr", "אישר הגעה → Handoff", "end", "#22c55e"),
+        fnode("wd", "פרש / לא הגיב (5 ימים)", "end", "#64748b"),
+        fnode("rej", "נדחה", "end", "#ef4444"),
+      ];
+      const edges = [
+        { from: "s", to: "a" },
+        { from: "a", to: "dA" },
+        { from: "dA", to: "b", label: "עומד" },
+        { from: "dA", to: "rej", label: "לא עומד" },
+        { from: "b", to: "dB" },
+        { from: "dB", to: "c", label: "עומד" },
+        { from: "dB", to: "rej", label: "מתחת לסף" },
+        { from: "c", to: "dC" },
+        { from: "dC", to: "d", label: "עבר" },
+        { from: "dC", to: "rej", label: "לא עבר" },
+        { from: "d", to: "comm" },
+        { from: "comm", to: "acc", label: "התקבל" },
+        { from: "comm", to: "wait", label: "המתנה" },
+        { from: "comm", to: "rej", label: "נדחה" },
+        { from: "wait", to: "acc", label: "מתפנה מקום" },
+        { from: "acc", to: "appr", label: "אישר הגעה" },
+        { from: "acc", to: "wd", label: "לא הגיב / פרש" },
+      ];
+      return { nodes: nodes, edges: edges };
+    }
+
+    function seedStatusFlow() {
+      // מודל הסטטוסים ומעברים (סעיף 9 באפיון)
+      const nodes = [
+        fnode("draft", "טיוטה (בצנרת)", "start", "#64748b"),
+        fnode("sub", "הוגש", "process", "#0ea5e9"),
+        fnode("spam", "ספאם", "end", "#ef4444"),
+        fnode("rev", "נבדק / נשלחה TASK", "process", "#0ea5e9"),
+        fnode("meets", "עומד בתנאי סף", "process", "#14b8a6"),
+        fnode("nmeets", "לא עומד בתנאי סף", "end", "#ef4444"),
+        fnode("prog", "בתהליך (ב׳/ג׳/ד׳)", "process", "#f59e0b"),
+        fnode("wait", "רשימת המתנה", "process", "#0ea5e9"),
+        fnode("acc", "התקבל", "process", "#22c55e"),
+        fnode("cond", "קבלה על תנאי", "process", "#22c55e", "בכפוף להשלמת ציון (מבחן ידע)."),
+        fnode("rej", "נדחה", "end", "#ef4444"),
+        fnode("pend", "ממתין לתשובה", "process", "#f59e0b", "5 ימי עבודה."),
+        fnode("appr", "אישר הגעה", "end", "#22c55e"),
+        fnode("wd", "פרש / נסוג", "end", "#64748b"),
+      ];
+      const edges = [
+        { from: "draft", to: "sub" },
+        { from: "sub", to: "rev" },
+        { from: "sub", to: "spam", label: "ספאם" },
+        { from: "rev", to: "meets", label: "עומד" },
+        { from: "rev", to: "nmeets", label: "לא עומד" },
+        { from: "meets", to: "prog" },
+        { from: "prog", to: "acc", label: "התקבל" },
+        { from: "prog", to: "cond", label: "על תנאי" },
+        { from: "prog", to: "wait", label: "המתנה" },
+        { from: "prog", to: "rej", label: "נדחה" },
+        { from: "wait", to: "acc", label: "התקבל" },
+        { from: "wait", to: "rej", label: "נדחה" },
+        { from: "acc", to: "pend", label: "ממתין" },
+        { from: "acc", to: "appr", label: "אישר" },
+        { from: "acc", to: "wd", label: "פרש" },
+        { from: "cond", to: "pend" },
+        { from: "cond", to: "appr", label: "השלים ציון" },
+        { from: "pend", to: "appr", label: "אישר" },
+        { from: "pend", to: "wd", label: "לא הגיב" },
+      ];
+      return { nodes: nodes, edges: edges };
+    }
+
     // ---------- מצב ----------
     let store = loadStore();
     let activeId = store.activeId;
@@ -574,10 +699,14 @@
           if (parsed && parsed.maps && parsed.maps.length) return parsed;
         }
       } catch (e) { /* ignore */ }
-      // ברירת מחדל: שתי מפות זרע
+      // ברירת מחדל: שתי מפות עץ + שני תרשימי זרימה
       const m1 = { id: uid(), name: "מיון וקבלה MD-PhD — אפיון יוני 2026", root: seedCandidateJourney() };
       const m2 = { id: uid(), name: "מסע הסטודנט — מקבלה ועד סיום", root: seedStudentJourney() };
-      return { maps: [m1, m2], activeId: m1.id };
+      const sf = seedStageFlow();
+      const m3 = { id: uid(), name: "תרשים זרימה — תהליך המיון", type: "flow", nodes: sf.nodes, edges: sf.edges };
+      const st = seedStatusFlow();
+      const m4 = { id: uid(), name: "תרשים זרימה — מודל סטטוסים", type: "flow", nodes: st.nodes, edges: st.edges };
+      return { maps: [m1, m2, m3, m4], activeId: m1.id };
     }
 
     function saveStore() {
@@ -590,10 +719,18 @@
     }
 
     // ---------- עזרי עץ ----------
-    function findNode(id, root = activeMap().root, parent = null) {
-      if (root.id === id) return { node: root, parent };
+    function findNode(id) {
+      const m = activeMap();
+      if (m.type === "flow") {
+        const n = (m.nodes || []).find(x => x.id === id);
+        return n ? { node: n, parent: null } : null;
+      }
+      return findInTree(id, m.root, null);
+    }
+    function findInTree(id, root, parent) {
+      if (root.id === id) return { node: root, parent: parent };
       for (const c of root.children) {
-        const r = findNode(id, c, root);
+        const r = findInTree(id, c, root);
         if (r) return r;
       }
       return null;
@@ -640,6 +777,7 @@
     let nodeEls = {};
 
     function render() {
+      if (activeMap().type === "flow") { renderFlow(); return; }
       // שלב 1: בנייה/מדידה
       nodeEls = {};
       // נקה צמתים קודמים (שמור את ה-svg)
@@ -728,6 +866,117 @@
         cur = r ? r.parent : null;
       }
       return COLORS[0];
+    }
+
+    // ---------- רינדור תרשים זרימה (flow / DAG) ----------
+    const FLOW_ROW_GAP = 64, FLOW_COL_GAP = 44;
+
+    function computeFlowLayout(nodes, edges) {
+      const byId = {}; nodes.forEach(n => byId[n.id] = n);
+      // שכבה = המסלול הארוך ביותר אל הצומת (longest path), עם הגנה ממעגלים
+      const layer = {}, visiting = {};
+      function calc(id) {
+        if (layer[id] != null) return layer[id];
+        if (visiting[id]) return 0;
+        visiting[id] = true;
+        let L = 0;
+        edges.forEach(e => { if (e.to === id && byId[e.from]) L = Math.max(L, calc(e.from) + 1); });
+        visiting[id] = false; layer[id] = L; return L;
+      }
+      nodes.forEach(n => calc(n.id));
+      const layers = [];
+      nodes.forEach(n => { const L = layer[n.id]; (layers[L] = layers[L] || []).push(n); });
+      let y = 0;
+      layers.forEach(arr => {
+        const rowH = Math.max.apply(null, arr.map(n => n._h));
+        const totalW = arr.reduce((s, n) => s + n._w, 0) + FLOW_COL_GAP * (arr.length - 1);
+        let x = -totalW / 2;
+        arr.forEach(n => { n._x = x + n._w / 2; n._y = y + rowH / 2; x += n._w + FLOW_COL_GAP; });
+        y += rowH + FLOW_ROW_GAP;
+      });
+    }
+
+    function renderFlow() {
+      nodeEls = {};
+      Array.from(canvas.querySelectorAll(".node")).forEach(el => el.remove());
+      const m = activeMap();
+      const nodes = m.nodes || [], edges = m.edges || [];
+      nodes.forEach(n => { const el = buildFlowNodeEl(n); canvas.appendChild(el); nodeEls[n.id] = el; });
+      nodes.forEach(n => { const el = nodeEls[n.id]; n._w = el.offsetWidth; n._h = el.offsetHeight; });
+      computeFlowLayout(nodes, edges);
+
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      nodes.forEach(n => {
+        minX = Math.min(minX, n._x - n._w / 2); maxX = Math.max(maxX, n._x + n._w / 2);
+        minY = Math.min(minY, n._y - n._h / 2); maxY = Math.max(maxY, n._y + n._h / 2);
+      });
+      const pad = 90, offX = -minX + pad, offY = -minY + pad;
+      const totalW = (maxX - minX) + pad * 2, totalH = (maxY - minY) + pad * 2;
+      nodes.forEach(n => {
+        const el = nodeEls[n.id];
+        el.style.left = (n._x + offX - n._w / 2) + "px";
+        el.style.top = (n._y + offY - n._h / 2) + "px";
+      });
+      drawFlowEdges(nodes, edges, offX, offY, totalW, totalH);
+      canvas.style.width = totalW + "px";
+      canvas.style.height = totalH + "px";
+      canvas._bbox = { w: totalW, h: totalH };
+      applySelectionStyles();
+    }
+
+    function drawFlowEdges(nodes, edges, offX, offY, w, h) {
+      const byId = {}; nodes.forEach(n => byId[n.id] = n);
+      edgesSvg.setAttribute("width", w); edgesSvg.setAttribute("height", h);
+      edgesSvg.style.width = w + "px"; edgesSvg.style.height = h + "px";
+      let paths = "", labels = "";
+      const defs = '<defs><marker id="flowArrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs>';
+      edges.forEach(e => {
+        const s = byId[e.from], t = byId[e.to]; if (!s || !t) return;
+        const sx = s._x + offX, sy = s._y + offY + s._h / 2;
+        const tx = t._x + offX, ty = t._y + offY - t._h / 2;
+        const midY = (sy + ty) / 2;
+        paths += `<path d="M ${sx} ${sy} C ${sx} ${midY}, ${tx} ${midY}, ${tx} ${ty}" stroke="#94a3b8" stroke-width="1.8" fill="none" opacity="0.75" marker-end="url(#flowArrow)"/>`;
+        if (e.label) {
+          const lx = (sx + tx) / 2, ly = midY + 4;
+          labels += `<text x="${lx}" y="${ly}" fill="#e2e8f0" font-size="12" font-family="Heebo, sans-serif" font-weight="500" text-anchor="middle" direction="rtl" style="paint-order:stroke;stroke:#0f172a;stroke-width:4px;stroke-linejoin:round">${escapeXml(e.label)}</text>`;
+        }
+      });
+      edgesSvg.innerHTML = defs + paths + labels;
+    }
+
+    function buildFlowNodeEl(n) {
+      const el = document.createElement("div");
+      el.className = "node flow shape-" + (n.shape || "process");
+      if (n.note && n.note.trim()) el.classList.add("has-note");
+      el.dataset.id = n.id;
+      el.style.setProperty("--node-color", n.color || COLORS[0]);
+
+      const label = document.createElement("span");
+      label.className = "node-label";
+      label.textContent = n.text;
+      el.appendChild(label);
+
+      const noteDot = document.createElement("span");
+      noteDot.className = "note-dot"; noteDot.textContent = "i";
+      el.appendChild(noteDot);
+
+      const actions = document.createElement("div");
+      actions.className = "node-actions";
+      actions.innerHTML =
+        '<button data-act="edit" title="עריכה"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>' +
+        '<button class="del" data-act="del" title="מחיקה"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>';
+      actions.addEventListener("click", (e) => {
+        const btn = e.target.closest("button"); if (!btn) return;
+        e.stopPropagation();
+        if (btn.dataset.act === "edit") startInlineEdit(n.id);
+        else if (btn.dataset.act === "del") deleteNode(n.id);
+      });
+      el.appendChild(actions);
+
+      el.addEventListener("mousedown", (e) => e.stopPropagation());
+      el.addEventListener("click", (e) => { e.stopPropagation(); selectNode(n.id); });
+      el.addEventListener("dblclick", (e) => { e.stopPropagation(); startInlineEdit(n.id); });
+      return el;
     }
 
     function buildNodeEl(n, isRoot) {
@@ -832,6 +1081,7 @@
 
     // ---------- פעולות עץ ----------
     function addChild(id) {
+      if (activeMap().type === "flow") { toast("בתרשים זרימה אין צמתי-בן"); return; }
       const res = findNode(id); if (!res) return;
       res.node.collapsed = false;
       const child = node("נושא חדש");
@@ -841,6 +1091,7 @@
       startInlineEdit(child.id);
     }
     function addSibling(id) {
+      if (activeMap().type === "flow") return;
       const res = findNode(id);
       if (!res || !res.parent) { addChild(id); return; }
       const sib = node("נושא חדש");
@@ -851,6 +1102,15 @@
       startInlineEdit(sib.id);
     }
     function deleteNode(id) {
+      const m = activeMap();
+      if (m.type === "flow") {
+        if (!confirm("למחוק את הצומת והקשתות המחוברות אליו?")) return;
+        m.nodes = m.nodes.filter(n => n.id !== id);
+        m.edges = m.edges.filter(e => e.from !== id && e.to !== id);
+        selectedId = null; sidePanel.classList.remove("open");
+        saveStore(); render();
+        return;
+      }
       const res = findNode(id);
       if (!res) return;
       if (!res.parent) { toast("לא ניתן למחוק את השורש"); return; }
@@ -877,7 +1137,10 @@
       $("nodeText").value = n.text;
       $("nodeNote").value = n.note || "";
       buildSwatches(n.color);
-      $("deleteNodeBtn").style.display = res.parent ? "" : "none";
+      const isFlow = activeMap().type === "flow";
+      $("addChildBtn").style.display = isFlow ? "none" : "";
+      $("addSiblingBtn").style.display = isFlow ? "none" : "";
+      $("deleteNodeBtn").style.display = isFlow ? "" : (res.parent ? "" : "none");
     }
     function buildSwatches(active) {
       const wrap = $("swatches");
@@ -1000,6 +1263,11 @@
       const tag = (e.target.tagName || "").toLowerCase();
       if (tag === "input" || tag === "textarea" || tag === "select") return;
       if (!selectedId) return;
+      if (activeMap().type === "flow") {
+        if (e.key === "F2") { e.preventDefault(); startInlineEdit(selectedId); }
+        else if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); deleteNode(selectedId); }
+        return;
+      }
       if (e.key === "Tab") { e.preventDefault(); addChild(selectedId); }
       else if (e.key === "Enter") { e.preventDefault(); addSibling(selectedId); }
       else if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); deleteNode(selectedId); }
@@ -1048,8 +1316,9 @@
     });
 
     // ---------- פתח/קפל הכל ----------
-    $("expandAllBtn").addEventListener("click", () => { walk(activeMap().root, n => n.collapsed = false); saveStore(); render(); fitToScreen(); });
+    $("expandAllBtn").addEventListener("click", () => { if (activeMap().type === "flow") { toast("לא רלוונטי בתרשים זרימה"); return; } walk(activeMap().root, n => n.collapsed = false); saveStore(); render(); fitToScreen(); });
     $("collapseAllBtn").addEventListener("click", () => {
+      if (activeMap().type === "flow") { toast("לא רלוונטי בתרשים זרימה"); return; }
       // קפל הכל מלבד השורש והרמה הראשונה
       walk(activeMap().root, n => { if (n._depth >= 1) n.collapsed = true; });
       activeMap().root.collapsed = false;
@@ -1058,8 +1327,14 @@
 
     // ---------- ייצוא / ייבוא ----------
     $("exportJsonBtn").addEventListener("click", () => {
-      const data = JSON.stringify({ name: activeMap().name, root: stripMeta(activeMap().root) }, null, 2);
-      download(data, sanitize(activeMap().name) + ".json", "application/json");
+      const m = activeMap();
+      let data;
+      if (m.type === "flow") {
+        data = JSON.stringify({ name: m.name, type: "flow", nodes: m.nodes, edges: m.edges }, null, 2);
+      } else {
+        data = JSON.stringify({ name: m.name, root: stripMeta(m.root) }, null, 2);
+      }
+      download(data, sanitize(m.name) + ".json", "application/json");
     });
     function stripMeta(n) {
       return { text: n.text, color: n.color, note: n.note, collapsed: n.collapsed, children: n.children.map(stripMeta) };
@@ -1077,8 +1352,12 @@
       reader.onload = () => {
         try {
           const data = JSON.parse(reader.result);
-          const root = reviveIds(data.root || data);
-          const m = { id: uid(), name: (data.name || file.name.replace(/\.json$/, "")) + " (מיובא)", root };
+          let m;
+          if (data.type === "flow" && Array.isArray(data.nodes)) {
+            m = { id: uid(), name: (data.name || file.name.replace(/\.json$/, "")) + " (מיובא)", type: "flow", nodes: data.nodes, edges: data.edges || [] };
+          } else {
+            m = { id: uid(), name: (data.name || file.name.replace(/\.json$/, "")) + " (מיובא)", root: reviveIds(data.root || data) };
+          }
           store.maps.push(m); activeId = m.id; selectedId = null;
           saveStore(); refreshMapSelect(); render(); fitToScreen();
           toast("המפה יובאה בהצלחה");
@@ -1117,6 +1396,7 @@
 
     // בונה SVG עצמאי לייצוא (מצייר מלבנים, טקסט וקשתות)
     function buildExportSvg() {
+      if (activeMap().type === "flow") return buildFlowExportSvg();
       const root = activeMap().root;
       const visible = [];
       (function collect(n) { visible.push(n); if (!n.collapsed) n.children.forEach(collect); })(root);
@@ -1158,6 +1438,45 @@
       return { markup, w, h };
     }
 
+    // בונה SVG לייצוא תרשים זרימה
+    function buildFlowExportSvg() {
+      const m = activeMap();
+      const nodes = m.nodes || [], edges = m.edges || [];
+      computeFlowLayout(nodes, edges);
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      nodes.forEach(n => {
+        minX = Math.min(minX, n._x - n._w / 2); maxX = Math.max(maxX, n._x + n._w / 2);
+        minY = Math.min(minY, n._y - n._h / 2); maxY = Math.max(maxY, n._y + n._h / 2);
+      });
+      const pad = 60, offX = -minX + pad, offY = -minY + pad;
+      const w = (maxX - minX) + pad * 2, h = (maxY - minY) + pad * 2;
+      const byId = {}; nodes.forEach(n => byId[n.id] = n);
+      const defs = '<defs><marker id="exArrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/></marker></defs>';
+      let edgeSvg = "", labelSvg = "", boxes = "";
+      edges.forEach(e => {
+        const s = byId[e.from], t = byId[e.to]; if (!s || !t) return;
+        const sx = s._x + offX, sy = s._y + offY + s._h / 2;
+        const tx = t._x + offX, ty = t._y + offY - t._h / 2;
+        const midY = (sy + ty) / 2;
+        edgeSvg += `<path d="M ${sx} ${sy} C ${sx} ${midY}, ${tx} ${midY}, ${tx} ${ty}" stroke="#94a3b8" stroke-width="1.8" fill="none" opacity="0.75" marker-end="url(#exArrow)"/>`;
+        if (e.label) labelSvg += `<text x="${(sx + tx) / 2}" y="${midY + 4}" fill="#e2e8f0" font-size="12" font-family="Heebo, sans-serif" text-anchor="middle" direction="rtl" style="paint-order:stroke;stroke:#0f172a;stroke-width:4px;stroke-linejoin:round">${escapeXml(e.label)}</text>`;
+      });
+      nodes.forEach(n => {
+        const x = n._x + offX - n._w / 2, y = n._y + offY - n._h / 2;
+        const col = n.color || COLORS[0];
+        const rx = (n.shape === "start" || n.shape === "end") ? n._h / 2 : 12;
+        const dash = n.shape === "decision" ? ' stroke-dasharray="5 3"' : "";
+        boxes += `<rect x="${x}" y="${y}" width="${n._w}" height="${n._h}" rx="${rx}" fill="#1e293b" stroke="${col}" stroke-width="2"${dash}/>`;
+        const lines = String(n.text).split("\n");
+        const lh = 18, startY = n._y + offY - ((lines.length - 1) * lh) / 2 + 5;
+        lines.forEach((ln, i) => {
+          boxes += `<text x="${n._x + offX}" y="${startY + i * lh}" fill="#f8fafc" font-family="Heebo, sans-serif" font-size="14" font-weight="600" text-anchor="middle" direction="rtl">${escapeXml(ln)}</text>`;
+        });
+      });
+      const markup = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><rect width="${w}" height="${h}" fill="#0f172a"/>${defs}${edgeSvg}${boxes}${labelSvg}</svg>`;
+      return { markup, w, h };
+    }
+
     // ---------- מודלים / טוסט ----------
     const overlay = $("overlay"), modal = $("modal");
     function closeOverlay() { overlay.classList.remove("open"); }
@@ -1185,6 +1504,7 @@
           <li><b>הזזה:</b> גרירת הרקע. <b>זום:</b> גלגלת / צביטה / כפתורי הזום.</li>
           <li><b>פאנל צד:</b> צבעים והערות לכל צומת (נקודת מידע על צומת = יש הערה).</li>
           <li><b>מפות:</b> מעבר בין מפות בתפריט למעלה; אפשר ליצור, לשנות שם ולמחוק.</li>
+          <li><b>תרשימי זרימה:</b> שתי מפות זרימה (תהליך המיון + מודל הסטטוסים) עם חיצים ויהלומי החלטה. אפשר לערוך טקסט/הערה/צבע ולמחוק צמתים.</li>
           <li><b>שמירה:</b> אוטומטית בדפדפן. גיבוי/שיתוף דרך <b>ייצוא JSON</b>. ייצוא תמונה דרך <b>PNG</b>.</li>
         </ul>
         <p style="margin-top:1rem">הכלי עצמאי לחלוטין — אפשר להעלות את הקובץ לכל שרת (כולל ענן ויצמן) והוא יעבוד גם ללא אינטרנט.</p>
