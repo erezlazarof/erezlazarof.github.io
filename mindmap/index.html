@@ -1265,6 +1265,26 @@
       nodes.forEach(n => calc(n.id));
       const layers = [];
       nodes.forEach(n => { const L = layer[n.id]; (layers[L] = layers[L] || []).push(n); });
+
+      // הפחתת הצטלבויות קווים — סידור barycenter בכמה מעברים
+      const up = {}, down = {};
+      edges.forEach(e => { (up[e.to] = up[e.to] || []).push(e.from); (down[e.from] = down[e.from] || []).push(e.to); });
+      const orig = {}; layers.forEach(arr => arr.forEach((n, i) => orig[n.id] = i));
+      function bary(n, adj, pos) {
+        const a = (adj[n.id] || []).map(id => pos[id]).filter(x => x != null);
+        return a.length ? a.reduce((s, x) => s + x, 0) / a.length : orig[n.id];
+      }
+      for (let pass = 0; pass < 4; pass++) {
+        for (let d = 1; d < layers.length; d++) {
+          const pos = {}; layers[d - 1].forEach((n, i) => pos[n.id] = i);
+          layers[d].sort((a, b) => bary(a, up, pos) - bary(b, up, pos));
+        }
+        for (let d = layers.length - 2; d >= 0; d--) {
+          const pos = {}; layers[d + 1].forEach((n, i) => pos[n.id] = i);
+          layers[d].sort((a, b) => bary(a, down, pos) - bary(b, down, pos));
+        }
+      }
+
       let y = 0;
       layers.forEach(arr => {
         const rowH = Math.max.apply(null, arr.map(n => n._h));
@@ -1678,6 +1698,11 @@
       if (activeMap().type === "flow") {
         if (e.key === "F2") { e.preventDefault(); startInlineEdit(selectedId); }
         else if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); deleteNode(selectedId); }
+        else if (e.key === " ") {
+          e.preventDefault();
+          const r = findNode(selectedId);
+          if (r && r.node.sub) { r.node.expanded = !r.node.expanded; saveStore(); render(); selectNode(selectedId); centerOnNode(selectedId); }
+        }
         return;
       }
       if (e.key === "Tab") { e.preventDefault(); addChild(selectedId); }
@@ -1728,9 +1753,13 @@
     });
 
     // ---------- פתח/קפל הכל ----------
-    $("expandAllBtn").addEventListener("click", () => { if (activeMap().type === "flow") { toast("לא רלוונטי בתרשים זרימה"); return; } walk(activeMap().root, n => n.collapsed = false); saveStore(); render(); fitToScreen(); });
+    function setFlowExpanded(state) {
+      collectFlowAll(activeMap()).forEach(n => { if (n.sub) n.expanded = state; });
+      saveStore(); render(); fitToScreen();
+    }
+    $("expandAllBtn").addEventListener("click", () => { if (activeMap().type === "flow") { setFlowExpanded(true); return; } walk(activeMap().root, n => n.collapsed = false); saveStore(); render(); fitToScreen(); });
     $("collapseAllBtn").addEventListener("click", () => {
-      if (activeMap().type === "flow") { toast("לא רלוונטי בתרשים זרימה"); return; }
+      if (activeMap().type === "flow") { setFlowExpanded(false); return; }
       // קפל הכל מלבד השורש והרמה הראשונה
       walk(activeMap().root, n => { if (n._depth >= 1) n.collapsed = true; });
       activeMap().root.collapsed = false;
@@ -1917,7 +1946,7 @@
           <li><b>הזזה:</b> גרירת הרקע. <b>זום:</b> גלגלת / צביטה / כפתורי הזום.</li>
           <li><b>פאנל צד:</b> צבעים והערות לכל צומת (נקודת מידע על צומת = יש הערה).</li>
           <li><b>מפות:</b> מעבר בין מפות בתפריט למעלה; אפשר ליצור, לשנות שם ולמחוק.</li>
-          <li><b>תרשימי זרימה:</b> שתי מפות זרימה (תהליך המיון + מודל הסטטוסים) עם חיצים ויהלומי החלטה. אפשר לערוך טקסט/הערה/צבע ולמחוק צמתים.</li>
+          <li><b>תרשימי זרימה:</b> תרשימים עם חיצים ויהלומי החלטה. ב"מסע הסטודנט — תרשים מתפתח" לחיצה על <b>+</b> בצומת (או <kbd>רווח</kbd>) מרחיבה את ההסתעפויות במקום; <b>פתח/קפל הכל</b> פותח/מקפל את כל ההסתעפויות.</li>
           <li><b>שמירה:</b> אוטומטית בדפדפן. גיבוי/שיתוף דרך <b>ייצוא JSON</b>. ייצוא תמונה דרך <b>PNG</b>.</li>
         </ul>
         <p style="margin-top:1rem">הכלי עצמאי לחלוטין — אפשר להעלות את הקובץ לכל שרת (כולל ענן ויצמן) והוא יעבוד גם ללא אינטרנט.</p>
