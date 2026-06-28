@@ -232,6 +232,37 @@
     }
     .node.flow.has-sub.expanded .flow-toggle { background: var(--bg-2); }
 
+    /* ===== Source badges (אמינות) ===== */
+    .src-badge {
+      position: absolute; top: -9px; inset-inline-start: -9px;
+      width: 18px; height: 18px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; line-height: 1;
+      background: var(--bg-1); border: 2px solid #64748b; z-index: 5;
+    }
+    .src-spec { border-color: #0ea5e9; }
+    .src-official { border-color: #22c55e; }
+    .src-general { border-color: #f59e0b; }
+
+    /* ===== Path highlight (הדגשת מסלול) ===== */
+    .node.flow.dimmed { opacity: 0.22; filter: saturate(0.4); transition: opacity 0.15s; }
+    .node.flow.on-path { opacity: 1; }
+    #edges path.dimmed { opacity: 0.1; transition: opacity 0.15s; }
+    #edges path.flow-edge.on-path { stroke: var(--accent) !important; stroke-width: 2.6; opacity: 1; }
+
+    /* ===== Flow legend (מקרא מקורות) ===== */
+    #flowLegend {
+      position: absolute; bottom: 14px; inset-inline-start: 14px; z-index: 30;
+      background: var(--panel-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--panel-border); border-radius: 12px; padding: 0.55rem 0.7rem;
+      font-size: 0.72rem; color: var(--text-muted); display: none; max-width: 250px; pointer-events: none;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+    }
+    #flowLegend b { display: block; color: var(--text); font-size: 0.76rem; margin-bottom: 0.35rem; }
+    #flowLegend span { display: flex; align-items: center; gap: 0.4rem; margin: 0.2rem 0; line-height: 1.3; }
+    #flowLegend .src-badge { position: static; width: 16px; height: 16px; flex: none; }
+    #flowLegend .lg-tip { margin-top: 0.45rem; color: var(--text-faint); font-size: 0.66rem; }
+
     /* ===== Search ===== */
     .search-group { position: relative; }
     .search-input {
@@ -487,7 +518,13 @@
       "#6366f1", "#8b5cf6", "#14b8a6", "#0ea5e9",
       "#f59e0b", "#ef4444", "#ec4899", "#22c55e", "#64748b"
     ];
-    const STORAGE_KEY = "gutwirth_journey_maps_v11";
+    const STORAGE_KEY = "gutwirth_journey_maps_v12";
+    // תיוג מקור-מידע לצמתי תרשים זרימה (אמינות גלויה)
+    const SRC_META = {
+      spec:     { icon: "📋", color: "#0ea5e9", label: "מקור: אפיון פנימי (מסמך התהליך)" },
+      official: { icon: "🌐", color: "#22c55e", label: "מקור: אתר התוכנית / חדשות ציבוריות" },
+      general:  { icon: "⚠️", color: "#f59e0b", label: "כללי — מודל מקובל, לא אומת פרטנית לתוכנית" },
+    };
     /*SEED_DATA_START*/
     window.SEED_DATA = null;
     /*SEED_DATA_END*/
@@ -675,12 +712,12 @@
           node("עד 40–42 סטודנטים למחזור (בעלי תואר ראשון/שני)"),
           node("פטור מלא משכר לימוד + מלגת קיום נדיבה לכל משך הלימודים"),
           node("פתיחת בית הספר: אוקטובר 2025"),
-          node("מיזם משותף עם קרן מרים ואהרון גוטווירט (תרומה של 110M$)"),
+          node("מיזם משותף עם קרן מרים ואהרון גוטווירט (תרומה של מעל ₪400 מיליון)"),
           node("למידה בקבוצות קטנות, ליווי אישי צמוד והדגשת מצוינות"),
         ], SRC),
         node("הנהלה", null, [
           node("דיקנית: פרופ׳ איילת ארז"),
-          node("מוביל אקדמי: פרופ׳ לירן שלוש"),
+          node("סגן דקאן: פרופ׳ לירן שלוש"),
           node("נשיא מכון ויצמן: פרופ׳ אלון חן"),
         ], "פרופ׳ ארז ופרופ׳ שלוש — ראשי קבוצות מחקר במכון ורופאים פעילים. " + SRC),
         node("תנאי קבלה וזכאות", "#ec4899", [
@@ -713,7 +750,7 @@
           node("מקצועיות ואתיקה"),
         ], SRC),
         node("מחקר", null, [
-          node("מחקר בכל תחומי המכון — 286 מעבדות"),
+          node("מחקר בכל תחומי המכון — מאות קבוצות מחקר"),
           node("PhD גם מחוץ למדעי החיים (פיזיקה, מדעי המחשב ועוד)"),
           node("דגשים: גנומיקה, אימונותרפיה, רפואה רגנרטיבית, ביולוגיה חישובית, פיתוח תרופות מבוסס AI"),
         ], SRC),
@@ -773,7 +810,7 @@
           node("מיומנויות קליניות בסיסיות (מהיום הראשון)"),
         ], "קורסי הליבה של התוכנית, לצד התחלת חשיפה קלינית. מקור: אתר התוכנית (Courses)."),
         node("שלב 4 · מסלול מחקר (PhD)", "#8b5cf6", [
-          node("בחירת מנחה ושיבוץ למעבדה", null, [], "מתוך 286 מעבדות במכון — בכל תחום, כולל פיזיקה ומדעי המחשב."),
+          node("בחירת מנחה ושיבוץ למעבדה", null, [], "מתוך מאות קבוצות המחקר במכון — בכל תחום, כולל פיזיקה ומדעי המחשב."),
           node("הצעת מחקר"),
           node("עבודת מחקר ופרסומים"),
           node("הגנת תזה"),
@@ -800,9 +837,10 @@
     }
 
     // ---------- זרע תרשימי זרימה (DAG: צמתים + קשתות עם חיצים) ----------
-    function fnode(id, text, shape, color, note, sub) {
+    function fnode(id, text, shape, color, note, sub, source) {
       const o = { id: id, text: text, shape: shape || "process", color: color || null, note: note || "" };
       if (sub) { o.sub = sub; o.expanded = false; }
+      if (source) o.source = source; // "spec" | "official" | "general"
       return o;
     }
 
@@ -843,6 +881,7 @@
         { from: "acc", to: "appr", label: "אישר הגעה" },
         { from: "acc", to: "wd", label: "לא הגיב / פרש" },
       ];
+      nodes.forEach(n => n.source = "spec");
       return { nodes: nodes, edges: edges };
     }
 
@@ -885,25 +924,64 @@
         { from: "pend", to: "appr", label: "אישר" },
         { from: "pend", to: "wd", label: "לא הגיב" },
       ];
+      nodes.forEach(n => n.source = "spec");
       return { nodes: nodes, edges: edges };
     }
 
     // תרשים מסע מתפתח (inline-expand): שדרה + תתי-גרפים שנפתחים בלחיצה על +.
+    // תיוג מקור לכל צומת: "spec" (אפיון פנימי) · "official" (אתר רשמי/חדשות) · "general" (מודל כללי, לא מאומת פרטנית).
     function seedJourneyFlow() {
-      const SRC = "מקור: אתר תוכנית MD-PhD, מכון ויצמן + מחקר ציבורי (6/2026).";
-      const GEN = "מבנה לפי מודל MD-PhD מקובל — לא בהכרח פרטני לוויצמן.";
+      const OFF = "מקור: אתר תוכנית MD-PhD, מכון ויצמן ומקורות חדשותיים ציבוריים (6/2026).";
+      const GEN = "מבנה לפי מודל לימודי רפואה/MD-PhD מקובל בישראל — לא אומת פרטנית לתוכנית.";
+
+      // --- רמה שנייה: תת-גרפים של שלבי המיון (מתוך האפיון הפנימי) ---
+      const a1Sub = { nodes: [
+        fnode("a1_cv", "קורות חיים (עברית + אנגלית)", "process", "#0ea5e9", null, null, "spec"),
+        fnode("a1_deg", "תארים BSc/MSc + גיליונות ציונים", "process", "#0ea5e9", null, null, "spec"),
+        fnode("a1_pre", "קורסי קדם נדרשים", "process", "#14b8a6", "ביוכימיה · ביולוגיה של התא · גנטיקה · מיקרוביולוגיה · ביולוגיה מולקולרית · פיזיולוגיה · סטטיסטיקה · Python · R.", null, "spec"),
+        fnode("a1_rec", "3 ממליצים (דרך הפורטל)", "process", "#0ea5e9", null, null, "spec"),
+        fnode("a1_cit", "מסמכי אזרחות / תושבות", "end", "#0ea5e9", "סינון תושבות — בשלב הרישום בלבד.", null, "spec"),
+      ], edges: [
+        { from: "adm_a1", to: "a1_cv" },
+        { from: "a1_cv", to: "a1_deg" },
+        { from: "a1_deg", to: "a1_pre" },
+        { from: "a1_pre", to: "a1_rec" },
+        { from: "a1_rec", to: "a1_cit" },
+      ] };
+      const a3Sub = { nodes: [
+        fnode("a3_int", "ראיונות", "process", "#f59e0b", "6 ראיונות ביום למראיין · 60 דק׳ כל אחד (09:00–17:00).", null, "spec"),
+        fnode("a3_sim", "סימולציה", "process", "#f59e0b", "12 סימולציות ביום · 30 דק׳ כל אחת (10:15–18:15).", null, "spec"),
+        fnode("a3_task", "משימה חישובית (טופ-שיא)", "process", "#14b8a6", null, null, "spec"),
+        fnode("a3_team", "צוות לכל מועמד", "end", "#8b5cf6", "רופא + פסיכולוג + פסיכולוג סימולציה.", null, "spec"),
+      ], edges: [
+        { from: "adm_a3", to: "a3_int" },
+        { from: "adm_a3", to: "a3_sim" },
+        { from: "adm_a3", to: "a3_task" },
+        { from: "a3_int", to: "a3_team" },
+        { from: "a3_sim", to: "a3_team" },
+      ] };
+      const a4Sub = { nodes: [
+        fnode("a4_phd", "ראיון PhD", "process", "#ef4444", null, null, "spec"),
+        fnode("a4_inbox", "משימת דואר נכנס", "process", "#14b8a6", "החריג היחיד שמתבצע מחוץ לטופ-שיא.", null, "spec"),
+        fnode("a4_team", "צוות הערכה לכל מועמד", "end", "#8b5cf6", "רופא + פסיכולוג + 2 ראשי קבוצות מחקר ממכון ויצמן.", null, "spec"),
+      ], edges: [
+        { from: "adm_a4", to: "a4_phd" },
+        { from: "a4_phd", to: "a4_inbox" },
+        { from: "a4_inbox", to: "a4_team" },
+      ] };
+
       const admSub = { nodes: [
-        fnode("adm_a1", "שלב א׳ — הרשמה ובדיקת תיקים", "process", "#0ea5e9"),
-        fnode("adm_gA", "עומד בתנאי סף?", "decision", "#f59e0b", "התאמות מילואים: תוקף קורסים 11 שנים, ציון סף 75."),
-        fnode("adm_a2", "שלב ב׳ — מבחנים דיגיטליים (טופ-שיא)", "process", "#14b8a6", "מגבלת 3 ניסיונות לכל החיים."),
-        fnode("adm_kn", "מבחן ידע ≥300?", "decision", "#f59e0b", "רפואן פטור ממבחן ידע."),
-        fnode("adm_cond", "קבלה על תנאי", "process", "#22c55e", "בכפוף להשלמת ציון מבחן הידע."),
-        fnode("adm_a3", "שלב ג׳ — ראיונות, סימולציה, משימה חישובית", "process", "#f59e0b"),
-        fnode("adm_a4", "שלב ד׳ — מרכז הערכה + ראיון PhD", "process", "#ef4444"),
-        fnode("adm_comm", "ועדת קבלה", "decision", "#8b5cf6"),
-        fnode("adm_wl", "רשימת המתנה", "process", "#0ea5e9", "אישור תוך 5 ימים → אחרת מציעים לבא בתור, שבועי עד מילוי."),
-        fnode("adm_offer", "הצעת קבלה", "end", "#22c55e"),
-        fnode("adm_rej", "נדחה", "end", "#ef4444"),
+        fnode("adm_a1", "שלב א׳ — הרשמה ובדיקת תיקים", "process", "#0ea5e9", "הרחב (+) לרשימת המסמכים.", a1Sub, "spec"),
+        fnode("adm_gA", "עומד בתנאי סף?", "decision", "#f59e0b", "התאמות מילואים: תוקף קורסים 11 שנים, ציון סף 75.", null, "spec"),
+        fnode("adm_a2", "שלב ב׳ — מבחנים דיגיטליים (טופ-שיא)", "process", "#14b8a6", "מגבלת 3 ניסיונות לכל החיים.", null, "spec"),
+        fnode("adm_kn", "מבחן ידע ≥300?", "decision", "#f59e0b", "רפואן פטור ממבחן ידע.", null, "spec"),
+        fnode("adm_cond", "קבלה על תנאי", "process", "#22c55e", "בכפוף להשלמת ציון מבחן הידע.", null, "spec"),
+        fnode("adm_a3", "שלב ג׳ — ראיונות, סימולציה, משימה חישובית", "process", "#f59e0b", "הרחב (+) ללוחות הזמנים.", a3Sub, "spec"),
+        fnode("adm_a4", "שלב ד׳ — מרכז הערכה + ראיון PhD", "process", "#ef4444", "הרחב (+) למרכיבים.", a4Sub, "spec"),
+        fnode("adm_comm", "ועדת קבלה", "decision", "#8b5cf6", null, null, "spec"),
+        fnode("adm_wl", "רשימת המתנה", "process", "#0ea5e9", "אישור תוך 5 ימים → אחרת מציעים לבא בתור, שבועי עד מילוי.", null, "spec"),
+        fnode("adm_offer", "הצעת קבלה", "end", "#22c55e", null, null, "spec"),
+        fnode("adm_rej", "נדחה", "end", "#ef4444", null, null, "spec"),
       ], edges: [
         { from: "adm", to: "adm_a1" },
         { from: "adm_a1", to: "adm_gA" },
@@ -920,42 +998,55 @@
         { from: "adm_comm", to: "adm_rej", label: "נדחה" },
         { from: "adm_wl", to: "adm_offer", label: "מתפנה מקום" },
       ] };
+
+      // --- רמה שנייה: נושאי קורס האורך (מתוך האתר הרשמי) ---
+      const mreSub = { nodes: [
+        fnode("mre_comm", "תקשורת ומיומנויות קליניות", "process", "#64748b", null, null, "official"),
+        fnode("mre_hum", "מדעי הרוח ברפואה · רפואה ממוקדת-מטופל", "process", "#64748b", null, null, "official"),
+        fnode("mre_pub", "בריאות הציבור · מדעי מערכת הבריאות", "process", "#64748b", null, null, "official"),
+        fnode("mre_eth", "מקצועיות ואתיקה", "end", "#64748b", null, null, "official"),
+      ], edges: [
+        { from: "pre_mre", to: "mre_comm" },
+        { from: "pre_mre", to: "mre_hum" },
+        { from: "pre_mre", to: "mre_pub" },
+        { from: "pre_mre", to: "mre_eth" },
+      ] };
       const preSub = { nodes: [
-        fnode("pre_c", "קורסי ליבה", "process", "#14b8a6", "אנטומיה, פיזיולוגיה, פתולוגיה, ביוכימיה, גנטיקה, ביולוגיה מולקולרית/חישובית, אפידמיולוגיה, פרמקולוגיה."),
-        fnode("pre_lab", "סשני מעבדה משותפים", "process", "#14b8a6"),
-        fnode("pre_mre", "קורס Medical Research Education (שבועי)", "process", "#64748b", "מלווה את כל התוכנית."),
+        fnode("pre_c", "קורסי ליבה", "process", "#14b8a6", "אנטומיה, פיזיולוגיה, פתולוגיה, ביוכימיה, גנטיקה, ביולוגיה מולקולרית/חישובית, אפידמיולוגיה, פרמקולוגיה.", null, "official"),
+        fnode("pre_lab", "סשני מעבדה משותפים", "process", "#14b8a6", null, null, "official"),
+        fnode("pre_mre", "קורס Medical Research Education (שבועי)", "process", "#64748b", "מלווה את כל התוכנית — הרחב (+) לנושאים.", mreSub, "official"),
       ], edges: [
         { from: "pre", to: "pre_c" },
         { from: "pre_c", to: "pre_lab" },
         { from: "pre_c", to: "pre_mre" },
       ] };
+
       const phdSub = { nodes: [
-        fnode("phd_rot", "רוטציות מעבדה", "process", "#8b5cf6", GEN),
-        fnode("phd_mentor", "בחירת מנחה ומעבדה", "process", "#8b5cf6", "מתוך 286 מעבדות — כל תחום (כולל פיזיקה/מדעי המחשב)."),
-        fnode("phd_prop", "הצעת מחקר", "process", "#8b5cf6"),
-        fnode("phd_cand", "בחינת מועמדות (Candidacy)", "decision", "#8b5cf6", GEN),
-        fnode("phd_comm", "ועדת תזה (כל 6 חודשים)", "process", "#8b5cf6", GEN),
-        fnode("phd_paper", "מאמר ראשון + הגנת תזה", "process", "#8b5cf6"),
-        fnode("phd_back", "חזרה לקליניקה", "end", "#0ea5e9", GEN),
+        fnode("phd_rot", "רוטציות מעבדה", "process", "#8b5cf6", GEN, null, "general"),
+        fnode("phd_mentor", "בחירת מנחה ומעבדה", "process", "#8b5cf6", "מתוך מאות קבוצות המחקר במכון — כל תחום (כולל פיזיקה/מדעי המחשב).", null, "official"),
+        fnode("phd_prop", "הצעת מחקר", "process", "#8b5cf6", GEN, null, "general"),
+        fnode("phd_work", "עבודת מחקר ופרסומים", "process", "#8b5cf6", GEN, null, "general"),
+        fnode("phd_def", "הגנת תזה", "process", "#8b5cf6", null, null, "official"),
+        fnode("phd_back", "המשך/חזרה לקליניקה", "end", "#0ea5e9", "הרצף הקליני נמשך גם בתקופת הדוקטורט.", null, "official"),
       ], edges: [
         { from: "phd", to: "phd_rot" },
         { from: "phd_rot", to: "phd_mentor" },
         { from: "phd_mentor", to: "phd_prop" },
-        { from: "phd_prop", to: "phd_cand" },
-        { from: "phd_cand", to: "phd_comm", label: "עבר" },
-        { from: "phd_comm", to: "phd_paper" },
-        { from: "phd_paper", to: "phd_back" },
+        { from: "phd_prop", to: "phd_work" },
+        { from: "phd_work", to: "phd_def" },
+        { from: "phd_def", to: "phd_back" },
       ] };
+
       const clinSub = { nodes: [
-        fnode("clin_rot", "סבבי ליבה — 77 שבועות", "process", "#0ea5e9"),
-        fnode("clin_im", "פנימית", "process", "#0ea5e9"),
-        fnode("clin_ped", "ילדים", "process", "#0ea5e9"),
-        fnode("clin_gyn", "גינקולוגיה", "process", "#0ea5e9"),
-        fnode("clin_psy", "פסיכיאטריה", "process", "#0ea5e9"),
-        fnode("clin_surg", "כירורגיה", "process", "#0ea5e9"),
-        fnode("clin_neuro", "נוירולוגיה", "process", "#0ea5e9"),
-        fnode("clin_fam", "רפואת משפחה", "process", "#0ea5e9"),
-        fnode("clin_elec", "סבב בחירה — 15 שבועות", "end", "#14b8a6"),
+        fnode("clin_rot", "סבבי ליבה — 77 שבועות", "process", "#0ea5e9", null, null, "official"),
+        fnode("clin_im", "פנימית", "process", "#0ea5e9", null, null, "official"),
+        fnode("clin_ped", "ילדים", "process", "#0ea5e9", null, null, "official"),
+        fnode("clin_gyn", "גינקולוגיה", "process", "#0ea5e9", null, null, "official"),
+        fnode("clin_psy", "פסיכיאטריה", "process", "#0ea5e9", null, null, "official"),
+        fnode("clin_surg", "כירורגיה", "process", "#0ea5e9", null, null, "official"),
+        fnode("clin_neuro", "נוירולוגיה", "process", "#0ea5e9", null, null, "official"),
+        fnode("clin_fam", "רפואת משפחה", "process", "#0ea5e9", null, null, "official"),
+        fnode("clin_elec", "סבב בחירה — 15 שבועות", "end", "#14b8a6", null, null, "official"),
       ], edges: [
         { from: "clin", to: "clin_rot" },
         { from: "clin_rot", to: "clin_im" }, { from: "clin_rot", to: "clin_ped" },
@@ -963,14 +1054,15 @@
         { from: "clin_rot", to: "clin_surg" }, { from: "clin_rot", to: "clin_neuro" },
         { from: "clin_rot", to: "clin_fam" }, { from: "clin_rot", to: "clin_elec" },
       ] };
+
       const resSub = { nodes: [
-        fnode("res_lic", "רישיון לעסוק ברפואה", "process", "#22c55e"),
-        fnode("res_choose", "בחירת מקצוע התמחות (56 מקצועות)", "decision", "#f59e0b"),
-        fnode("res_base", "מקצוע בסיס (התמחות 4–6 שנים)", "process", "#0ea5e9"),
-        fnode("res_a", "בחינת שלב א׳", "process", "#8b5cf6", "אפשרי אחרי שנתיים."),
-        fnode("res_b", "בחינת שלב ב׳", "process", "#8b5cf6"),
-        fnode("res_spec", "מומחה/ית", "end", "#22c55e"),
-        fnode("res_super", "מקצוע-על", "process", "#ec4899", "רק לאחר מקצוע בסיס."),
+        fnode("res_lic", "רישיון לעסוק ברפואה", "process", "#22c55e", null, null, "official"),
+        fnode("res_choose", "בחירת מקצוע התמחות", "decision", "#f59e0b", GEN, null, "general"),
+        fnode("res_base", "מקצוע בסיס (התמחות 4–6 שנים)", "process", "#0ea5e9", null, null, "official"),
+        fnode("res_a", "בחינת שלב א׳", "process", "#8b5cf6", GEN, null, "general"),
+        fnode("res_b", "בחינת שלב ב׳", "process", "#8b5cf6", GEN, null, "general"),
+        fnode("res_spec", "מומחה/ית", "end", "#22c55e", null, null, "general"),
+        fnode("res_super", "מקצוע-על", "process", "#ec4899", GEN, null, "general"),
       ], edges: [
         { from: "res", to: "res_lic" },
         { from: "res_lic", to: "res_choose" },
@@ -980,20 +1072,21 @@
         { from: "res_b", to: "res_spec" },
         { from: "res_spec", to: "res_super", label: "אופציונלי" },
       ] };
+
       const nodes = [
-        fnode("s", "הרשמה", "start", "#6366f1", "דדליין למחזור 2026/27: 15.2.2026. " + SRC),
-        fnode("adm", "מיון וקבלה", "process", "#0ea5e9", "5 שלבים, פברואר–יולי. הרחב (+) לפירוט.", admSub),
-        fnode("adm_no", "לא זכאי / נדחה", "end", "#ef4444"),
-        fnode("accept", "קבלה וקליטה", "process", "#14b8a6", "מכתב קבלה, אישור הגעה, אוריינטציה, שיבוץ."),
-        fnode("pre", "לימודים פרה-קליניים", "process", "#f59e0b", "קורסי ליבה — הרחב (+).", preSub),
-        fnode("gate", "ממוצע ≥75 בקורסי הליבה?", "decision", "#f59e0b", "תנאי למעבר ל-PhD ולקליניקה."),
-        fnode("phd", "מסלול מחקר (PhD)", "process", "#8b5cf6", "286 מעבדות, כל תחום — הרחב (+).", phdSub),
-        fnode("clin", "לימודים קליניים", "process", "#0ea5e9", "77 שבועות סבבים, מהיום הראשון — הרחב (+).", clinSub),
-        fnode("exit75", "השלמות / יציאה", "end", "#64748b"),
-        fnode("intern", "סטאז׳ (שנה)", "process", "#ec4899"),
-        fnode("license", "מבחן רישוי → רישיון", "process", "#22c55e"),
-        fnode("res", "התמחות", "process", "#0ea5e9", "רישוי → 56 מקצועות → שלב א׳/ב׳ — הרחב (+).", resSub),
-        fnode("grad", "רופא/ה-חוקר/ת (MD-PhD)", "end", "#22c55e"),
+        fnode("s", "הרשמה", "start", "#6366f1", "דדליין למחזור 2026/27: 15.2.2026. " + OFF, null, "official"),
+        fnode("adm", "מיון וקבלה", "process", "#0ea5e9", "5 שלבים, פברואר–יולי. הרחב (+) לפירוט.", admSub, "spec"),
+        fnode("adm_no", "לא זכאי / נדחה", "end", "#ef4444", null, null, "spec"),
+        fnode("accept", "קבלה וקליטה", "process", "#14b8a6", "מכתב קבלה, אישור הגעה, אוריינטציה, שיבוץ.", null, "spec"),
+        fnode("pre", "לימודים פרה-קליניים", "process", "#f59e0b", "קורסי ליבה — הרחב (+).", preSub, "official"),
+        fnode("gate", "עמידה בדרישות אקדמיות?", "decision", "#f59e0b", "נקודת מעבר אקדמית ל-PhD ולקליניקה (מודל כללי — לא אומת פרטנית).", null, "general"),
+        fnode("phd", "מסלול מחקר (PhD)", "process", "#8b5cf6", "מאות קבוצות מחקר, כל תחום — הרחב (+).", phdSub, "official"),
+        fnode("clin", "לימודים קליניים", "process", "#0ea5e9", "77 שבועות סבבים, מהיום הראשון — הרחב (+).", clinSub, "official"),
+        fnode("exit75", "השלמות / יציאה", "end", "#64748b", null, null, "general"),
+        fnode("intern", "סטאז׳ (שנה)", "process", "#ec4899", null, null, "official"),
+        fnode("license", "מבחן רישוי → רישיון", "process", "#22c55e", GEN, null, "general"),
+        fnode("res", "התמחות", "process", "#0ea5e9", "רישוי → מקצוע בסיס (4–6 שנים) — הרחב (+).", resSub, "general"),
+        fnode("grad", "רופא/ה-חוקר/ת (MD-PhD)", "end", "#22c55e", null, null, "official"),
       ];
       const edges = [
         { from: "s", to: "adm" },
@@ -1001,9 +1094,9 @@
         { from: "adm", to: "adm_no", label: "נדחה / לא זכאי" },
         { from: "accept", to: "pre" },
         { from: "pre", to: "gate" },
-        { from: "gate", to: "phd", label: "≥75" },
-        { from: "gate", to: "clin", label: "≥75" },
-        { from: "gate", to: "exit75", label: "<75" },
+        { from: "gate", to: "phd", label: "עומד" },
+        { from: "gate", to: "clin", label: "עומד" },
+        { from: "gate", to: "exit75", label: "לא עומד" },
         { from: "phd", to: "intern" },
         { from: "clin", to: "intern" },
         { from: "intern", to: "license" },
@@ -1154,8 +1247,10 @@
 
     // ---------- רינדור ----------
     let nodeEls = {};
+    let flowEff = null; // הגרף האפקטיבי האחרון של תרשים זרימה (לבחירה והדגשת מסלול)
 
     function render() {
+      updateFlowLegend();
       if (activeMap().type === "flow") { renderFlow(); return; }
       // שלב 1: בנייה/מדידה
       nodeEls = {};
@@ -1300,6 +1395,7 @@
       Array.from(canvas.querySelectorAll(".node")).forEach(el => el.remove());
       const m = activeMap();
       const eff = collectFlow(m);
+      flowEff = eff;
       const nodes = eff.nodes, edges = eff.edges;
       nodes.forEach(n => { const el = buildFlowNodeEl(n); canvas.appendChild(el); nodeEls[n.id] = el; });
       nodes.forEach(n => { const el = nodeEls[n.id]; n._w = el.offsetWidth; n._h = el.offsetHeight; });
@@ -1335,7 +1431,7 @@
         const sx = s._x + offX, sy = s._y + offY + s._h / 2;
         const tx = t._x + offX, ty = t._y + offY - t._h / 2;
         const midY = (sy + ty) / 2;
-        paths += `<path d="M ${sx} ${sy} C ${sx} ${midY}, ${tx} ${midY}, ${tx} ${ty}" stroke="#94a3b8" stroke-width="1.8" fill="none" opacity="0.75" marker-end="url(#flowArrow)"/>`;
+        paths += `<path class="flow-edge" data-edge="${escapeXml(e.from)}|${escapeXml(e.to)}" d="M ${sx} ${sy} C ${sx} ${midY}, ${tx} ${midY}, ${tx} ${ty}" stroke="#94a3b8" stroke-width="1.8" fill="none" opacity="0.75" marker-end="url(#flowArrow)"/>`;
         if (e.label) {
           const lx = (sx + tx) / 2, ly = midY + 4;
           labels += `<text x="${lx}" y="${ly}" fill="#e2e8f0" font-size="12" font-family="Heebo, sans-serif" font-weight="500" text-anchor="middle" direction="rtl" style="paint-order:stroke;stroke:#0f172a;stroke-width:4px;stroke-linejoin:round">${escapeXml(e.label)}</text>`;
@@ -1360,6 +1456,14 @@
       const noteDot = document.createElement("span");
       noteDot.className = "note-dot"; noteDot.textContent = "i";
       el.appendChild(noteDot);
+
+      if (n.source && SRC_META[n.source]) {
+        const b = document.createElement("span");
+        b.className = "src-badge src-" + n.source;
+        b.textContent = SRC_META[n.source].icon;
+        b.title = SRC_META[n.source].label;
+        el.appendChild(b);
+      }
 
       if (n.sub) {
         const ft = document.createElement("div");
@@ -1456,8 +1560,55 @@
       openPanelFor(id);
     }
     function applySelectionStyles() {
-      Object.values(nodeEls).forEach(el => el.classList.remove("selected"));
-      if (selectedId && nodeEls[selectedId]) nodeEls[selectedId].classList.add("selected");
+      const flow = activeMap().type === "flow";
+      // הדגשת מסלול: אבות + צאצאים של הצומת הנבחר (BFS על הקשתות)
+      const pathSet = (flow && selectedId && flowEff) ? flowPathSet(selectedId) : null;
+      Object.entries(nodeEls).forEach(([id, el]) => {
+        el.classList.remove("selected", "on-path", "dimmed");
+        if (id === selectedId) el.classList.add("selected");
+        if (pathSet) el.classList.add(pathSet.has(id) ? "on-path" : "dimmed");
+      });
+      if (flow) {
+        edgesSvg.querySelectorAll("path[data-edge]").forEach(p => {
+          p.classList.remove("on-path", "dimmed");
+          if (!pathSet) return;
+          const parts = p.dataset.edge.split("|");
+          p.classList.add(pathSet.has(parts[0]) && pathSet.has(parts[1]) ? "on-path" : "dimmed");
+        });
+      }
+    }
+    // קבוצת הצמתים שעל המסלול דרך id: אבות (אחורה) + הצומת + צאצאים (קדימה)
+    function flowPathSet(id) {
+      const up = {}, down = {};
+      flowEff.edges.forEach(e => {
+        (down[e.from] = down[e.from] || []).push(e.to);
+        (up[e.to] = up[e.to] || []).push(e.from);
+      });
+      const out = new Set([id]);
+      function bfs(adj) {
+        const q = [id];
+        while (q.length) {
+          const x = q.shift();
+          (adj[x] || []).forEach(y => { if (!out.has(y)) { out.add(y); q.push(y); } });
+        }
+      }
+      bfs(up); bfs(down);
+      return out;
+    }
+    // מקרא מקורות-המידע — מוצג רק בתרשימי זרימה
+    function updateFlowLegend() {
+      let lg = $("flowLegend");
+      const flow = activeMap().type === "flow";
+      if (!flow) { if (lg) lg.style.display = "none"; return; }
+      if (!lg) {
+        lg = document.createElement("div");
+        lg.id = "flowLegend";
+        lg.innerHTML = '<b>מקור המידע</b>' +
+          Object.keys(SRC_META).map(k => '<span><i class="src-badge src-' + k + '">' + SRC_META[k].icon + '</i>' + SRC_META[k].label + '</span>').join("") +
+          '<span class="lg-tip">לחיצה על צומת מדגישה את המסלול · Esc לניקוי</span>';
+        viewport.appendChild(lg);
+      }
+      lg.style.display = "block";
     }
 
     // ---------- עריכה inline ----------
@@ -1703,6 +1854,7 @@
           const r = findNode(selectedId);
           if (r && r.node.sub) { r.node.expanded = !r.node.expanded; saveStore(); render(); selectNode(selectedId); centerOnNode(selectedId); }
         }
+        else if (e.key === "Escape") { e.preventDefault(); selectedId = null; applySelectionStyles(); sidePanel.classList.remove("open"); }
         return;
       }
       if (e.key === "Tab") { e.preventDefault(); addChild(selectedId); }
